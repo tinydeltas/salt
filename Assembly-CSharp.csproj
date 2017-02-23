@@ -198,8 +198,8 @@
      <Compile Include="Assets\_Materials\Deformations\Dents.cs" />
      <Compile Include="Assets\_Materials\Textures\CellularTemplate.cs" />
      <Compile Include="Assets\_Materials\Textures\SolidTextureTemplate.cs" />
+     <Compile Include="Assets\_Terrain\GlobalSeeder.cs" />
      <Compile Include="Assets\_Terrain\Navigation\NavMap.cs" />
-     <Compile Include="Assets\_Terrain\Procedural\GlobalSeeder.cs" />
      <Compile Include="Assets\_Terrain\Procedural\IslandShapeMask.cs" />
      <Compile Include="Assets\_Terrain\Procedural\MeshCreator.cs" />
      <Compile Include="Assets\_Terrain\RenderTerrain.cs" />

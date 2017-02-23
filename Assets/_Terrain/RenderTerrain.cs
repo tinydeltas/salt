@@ -4,6 +4,16 @@ using UnityEngine;
 
 public class RenderTerrain : MonoBehaviour {
 
+	// -------------------------------------
+	// Global user parameters
+
+	public Gradient colors; 
+
+	[Range(1, 8)] 
+	public int octaves = 3; 
+
+	public int frequency;
+
 	// Use this for initialization
 	void Start () {
 		

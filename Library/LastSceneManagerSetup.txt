@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Surface/Tutorial_surface.unity
+- path: Assets/Game/in valence.unity
   isLoaded: 1
   isActive: 1
