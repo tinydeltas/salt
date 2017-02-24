@@ -1,10 +1,10 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Surface/SurfaceCreator.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Terrain/Procedural/IslandShapeMask.cs">
     <Files>
-      <File FileName="Assets/Surface/SurfaceCreator.cs" Line="82" Column="29" />
-      <File FileName="Assets/Surface/Noise.cs" Line="25" Column="38" />
-      <File FileName="Assets/Surface/NewSurfaceShader.shader" Line="35" Column="4" />
+      <File FileName="Assets/_Terrain/GlobalSeeder.cs" Line="5" Column="25" />
+      <File FileName="Assets/_Terrain/RenderTerrain.cs" Line="15" Column="19" />
+      <File FileName="Assets/_Terrain/Procedural/IslandShapeMask.cs" Line="8" Column="11" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

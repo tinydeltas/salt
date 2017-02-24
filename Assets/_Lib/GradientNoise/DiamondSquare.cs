@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GlobalSeeder {
-	// passed in density, etc, params 
+namespace NoiseLib
+{
+	public class DiamondSquare
+	{
+
+	}
 }
