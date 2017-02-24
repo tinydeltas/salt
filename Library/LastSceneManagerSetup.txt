@@ -1,4 +1,0 @@
-sceneSetups:
-- path: Assets/Game/in valence.unity
-  isLoaded: 1
-  isActive: 1
