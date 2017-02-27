@@ -1,10 +1,13 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Terrain/Procedural/IslandShapeMask.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Lib/GradientNoise/ExpNoise.cs">
     <Files>
-      <File FileName="Assets/_Terrain/GlobalSeeder.cs" Line="5" Column="25" />
-      <File FileName="Assets/_Terrain/RenderTerrain.cs" Line="15" Column="19" />
-      <File FileName="Assets/_Terrain/Procedural/IslandShapeMask.cs" Line="8" Column="11" />
+      <File FileName="Assets/_Lib/GradientNoise/NoiseBase.cs" Line="11" Column="25" />
+      <File FileName="Assets/_Terrain/TerrainCreator.cs" Line="32" Column="18" />
+      <File FileName="Assets/_Lib/GradientNoise/ExpNoise.cs" Line="53" Column="39" />
+      <File FileName="Assets/_Lib/GradientNoise/DiamondSquare.cs" Line="1" Column="1" />
+      <File FileName="Assets/_Lib/Util/Math.cs" Line="22" Column="29" />
+      <File FileName="Assets/Learning/Surface/Noise.cs" Line="146" Column="23" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
