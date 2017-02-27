@@ -15,7 +15,7 @@ can you construct a history out of what surrounds you?
 
 ## usage
 
-`$git clone https://github.com/linii/
+`git clone https://github.com/linii/in-valence`
 
 ## licensing 
 
