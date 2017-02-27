@@ -2,7 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IHeightMappable<T>
+namespace NoiseLib
 {
-	float noise (T v);
+	
+	public interface IHeightMappable<T>
+	{
+		float noise (T v);
+	}
+		
+
+	public enum MappableTypes
+	{
+		Exp,
+		Perlin,
+		Value
+	}
+		
+	public enum OtherTypes 
+	{
+		DiamondSquare,
+	}
+
 }

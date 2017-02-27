@@ -4,8 +4,16 @@ using UnityEngine;
 
 namespace NoiseLib
 {
-	public class DiamondSquare
+	public interface MeshNoise {
+
+	}
+
+	class DiamondSquare : MeshNoise
 	{
+		public void LayMesh() {
+
+
+		}
 
 	}
 }

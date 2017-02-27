@@ -29,7 +29,9 @@ public class TerrainCreator : MonoBehaviour
 
 	// island opts
 
-	public NoiseLib.NoiseClass noiseType;
+	public NoiseLib.MappableTypes mappableType;
+
+	public NoiseLib.OtherTypes otherType; 
 
 	[Range (0f, 1f)]
 	public float islandDensity = 0.2f;
@@ -44,7 +46,7 @@ public class TerrainCreator : MonoBehaviour
 	// Private variables
 	private int curRes = -1;
 	private int curScale;
-	private Mesh m;
+	private Mesh m = null;
 
 
 	private Vector3[] verts;
@@ -56,11 +58,12 @@ public class TerrainCreator : MonoBehaviour
 			m = new Mesh (); 
 			m.name = "Test mesh"; 
 			GetComponent<MeshFilter> ().mesh = m;
+			Debug.Log ("Assigned mesh");
 		} 
 
 	}
 
-	private void update() {
+	private void updateParams() {
 		if (resolution != curRes) {
 			createNewMesh (resolution);
 			curRes = resolution; 
@@ -71,30 +74,43 @@ public class TerrainCreator : MonoBehaviour
 			curScale = scale;
 		}
 	}
-
-	void Awake() {
-		init ();
-	}
-
+		
 	void onEnable ()
 	{
-		update (); 
+		Debug.Log ("In enable.");
+		RenderTerrain ();
+	}
+
+	public void RenderTerrain() {
+		init ();
+		updateParams(); 
+
+		// get constants 
+		Vector2[] vecs = MeshUtil.Constants.UnitVectors2D;
 
 		// extract parameters 
-		IHeightMappable<Vector2> noiseClass = new NoiseLib.NoiseClass[(int) noiseType];
+		IHeightMappable<Vector2> cl = NoiseLib.Constants.MappableClasses [(int) mappableType];
 
 		// call the methods. 
 		int v = 0; 
+		float dx = 1 / resolution;
+
 		for (int i = 0; i <= resolution; i++) {
+			Vector2 p0 = Vector2.Lerp (vecs [0], vecs [2], i * dx); 
+			Vector2 p1 = Vector2.Lerp (vecs [1], vecs [3], i * dx); 
+
 			for (int j = 0; j <= resolution; j++) {
-				float height = noiseClass.noise(new Vector2(i, j));
-				height = height * 0.5f; 
+				Vector2 p = Vector2.Lerp (p0, p1, j * dx);
+				float height = cl.noise(p);
+
+				Debug.Log (height);
 				verts[v].y = height;
 				colors[v] = coloring.Evaluate(height);
 			}
 		}
 
 		setMesh(verts, colors); 
+
 	}
 
 	// creates new mesh (w triangles, etc) given the new resolution 
@@ -119,6 +135,8 @@ public class TerrainCreator : MonoBehaviour
 				v++;
 			}
 		}
+
+		Debug.Log ("Created mesh.");
 			
 		setMesh (verts, colors, norms, uv);
 		m.triangles = MeshLib.MeshUtil.GetTriangles(resolution);

@@ -6,7 +6,7 @@ using M = Util.Math;
 namespace NoiseLib
 {
 	
-	public class PerlinNoise : MonoBehaviour, IHeightMappable<Vector2>
+	public class PerlinNoise : IHeightMappable<Vector2>
 	{
 
 		public float noise(Vector2 p) {
@@ -34,7 +34,7 @@ namespace NoiseLib
 
 			// get next ones over
 			int x1 = x0 + 1; 
-			int y1 = x1 + 1; 
+			int y1 = y0 + 1; 
 
 			// get first-level displacement on x 
 			int _0 = h[x0]; 
