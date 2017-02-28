@@ -48,7 +48,7 @@ namespace NoiseLib
 			float z = M.Lerp (t1, t2, dy); 
 
 			// normalize the restult 
-			float prod = z / m;
+			float prod = z * (1f / m);
 
 			return prod; 
 		}

@@ -10,8 +10,8 @@ public class TerrainCreator : MonoBehaviour
 
 	// basic options
 
-	[Range (128, 1024)]
-	public int resolution = 256;
+	[Range (10, 200)]
+	public int resolution = 64;
 
 	public int scale = 10;
 
@@ -24,8 +24,8 @@ public class TerrainCreator : MonoBehaviour
 	[Range (1, 8)]
 	public int octaves = 1;
 
-	[Range (2, 10)]
-	public int frequency = 3;
+	[Range (3f, 10f)]
+	public float frequency = 3f;
 
 	// island opts
 
@@ -56,7 +56,7 @@ public class TerrainCreator : MonoBehaviour
 	private void init () {
 		if (m == null) {
 			m = new Mesh (); 
-			m.name = "Test mesh"; 
+			m.name = "Test mesh more"; 
 			GetComponent<MeshFilter> ().mesh = m;
 			Debug.Log ("Assigned mesh");
 		} 
@@ -68,11 +68,10 @@ public class TerrainCreator : MonoBehaviour
 			createNewMesh (resolution);
 			curRes = resolution; 
 		} 
-
-		if (scale != curScale) {
-			GetComponent<Transform> ().localScale = new Vector3 (scale, scale, scale);
-			curScale = scale;
-		}
+			// else if (scale != curScale) {
+//			GetComponent<Transform> ().localScale = new Vector3 (scale, scale, scale);
+//			curScale = scale;
+//		}
 	}
 		
 	void onEnable ()
@@ -84,31 +83,46 @@ public class TerrainCreator : MonoBehaviour
 	public void RenderTerrain() {
 		init ();
 		updateParams(); 
+	
 
 		// get constants 
-		Vector2[] vecs = MeshUtil.Constants.UnitVectors2D;
+		Vector3[] vecs = MeshUtil.Constants.UnitVectors2D;
 
 		// extract parameters 
 		IHeightMappable<Vector2> cl = NoiseLib.Constants.MappableClasses [(int) mappableType];
 
 		// call the methods. 
 		int v = 0; 
-		float dx = 1 / resolution;
+		float dx = 1f / resolution;
+
 
 		for (int i = 0; i <= resolution; i++) {
-			Vector2 p0 = Vector2.Lerp (vecs [0], vecs [2], i * dx); 
-			Vector2 p1 = Vector2.Lerp (vecs [1], vecs [3], i * dx); 
+			Vector3 p0 = Vector3.Lerp (vecs [0], vecs [2], i * dx); 
+			Vector3 p1 = Vector3.Lerp (vecs [1], vecs [3], i * dx); 
+
+//			Debug.Log ("dx: " + (i * dx).ToString ());
+//			Debug.Log ("p0: " + p0.ToString () + " p1: " + p1.ToString ());
 
 			for (int j = 0; j <= resolution; j++) {
-				Vector2 p = Vector2.Lerp (p0, p1, j * dx);
-				float height = cl.noise(p);
+				Vector3 p = Vector3.Lerp (p0, p1, j * dx);
 
-				Debug.Log (height);
+				p *= frequency; 
+
+				float height = cl.noise(new Vector2(p.x, p.y)) * 0.5f;
+
+//				Debug.Log ("p: " + p.ToString ());
+//				Debug.Log ("Height: " + height.ToString ()); 
+//				Debug.Log ("Current vertex: " + verts [v].ToString ());
+
 				verts[v].y = height;
-				colors[v] = coloring.Evaluate(height);
-			}
-		}
+				colors[v] = coloring.Evaluate(height + 0.5f);
 
+				v++;
+			}
+			
+		}	
+
+		Debug.Log ("Number of verts assigned in RenderTerrain" + v.ToString ()); 
 		setMesh(verts, colors); 
 
 	}
@@ -116,7 +130,7 @@ public class TerrainCreator : MonoBehaviour
 	// creates new mesh (w triangles, etc) given the new resolution 
 	private void createNewMesh(int resolution) {
 		m.Clear (); 
-		float u = 1f / resolution;
+
 
 		int numVerts = (resolution + 1) * (resolution + 1);
 
@@ -126,35 +140,52 @@ public class TerrainCreator : MonoBehaviour
 		colors = new Color[numVerts];
 
 		int v = 0; // vertex enumerator 
+		float u = 1f  / resolution;
 		for (int i = 0; i <= resolution; i++) {
 			for (int j = 0; j <= resolution; j++) {
-				verts [v] = new Vector3 (j * u - 0.5f, i * u - 0.5f); 
+				verts [v] = new Vector3 (j * u - 0.5f, 0f, i * u - 0.5f); 
 				norms [v] = Vector3.up;
-				colors [v] = Color.blue; 
+				colors [v] = Color.black; 
+				uv [v] = new Vector2 (j * u, i * u);
 
 				v++;
 			}
 		}
 
+		Debug.Log ("Expected vertices: " + numVerts.ToString()); 
+		Debug.Log ("Actual verts: " + v.ToString());
 		Debug.Log ("Created mesh.");
 			
 		setMesh (verts, colors, norms, uv);
 		m.triangles = MeshLib.MeshUtil.GetTriangles(resolution);
 
+//		Debug.Log ("Triangles: " );
+//		for (int i = 0; i < m.triangles.Length; i++) {
+//			Debug.Log (" " + m.triangles [i].ToString());
+//		}
+
 	}
 
 	// all-in one operation 
 	private void setMesh(Vector3[] vertices, Color[] colors, Vector3[] normals = null, Vector2[] uv = null ) {
+		Debug.Log ("Setting mesh. vertices: " + vertices.Length.ToString());
+
 		m.vertices = vertices;
+//		for (int i = 0; i < m.vertices.Length; i++) {
+//			Debug.Log (" v[" + m.vertices [i].ToString () + "]");
+//		}
+//
 		m.colors = colors;
 
 		if (normals != null) {
 			m.normals = normals; 
 		} else {
+			Debug.Log ("Recalculating normals.");
 			m.RecalculateNormals (); 
 		};
 
 		if (uv != null) {
+			Debug.Log ("Resetting uv.");
 			m.uv = uv;
 		}
 	}
