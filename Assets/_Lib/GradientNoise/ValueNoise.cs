@@ -24,6 +24,7 @@ namespace NoiseLib
 			x0 &= m; 
 			y0 &= m; 
 
+			// get next ones over
 			int x1 = x0 + 1; 
 			int y1 = y0 + 1; 
 
@@ -32,7 +33,6 @@ namespace NoiseLib
 			int _1 = h [x1]; 
 
 			// second level hashing on y 
-
 			int _00 = h [_0 + y0]; 
 			int _01 = h [_0 + y1]; 
 			int _10 = h [_1 + y0]; 
@@ -50,7 +50,7 @@ namespace NoiseLib
 			// normalize the restult 
 			float prod = z * (1f / m);
 
-			return prod; 
+			return prod - 0.5f; 
 		}
 
 		// four-dimensional version 

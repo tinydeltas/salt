@@ -17,6 +17,10 @@ namespace Util
 			return vec1.x * x + vec1.y * y;
 		}
 
+		public static float Dot(int[] vec1, Vector2 vec2) {
+			return vec1 [0] * vec2.x + vec1 [1] * vec2.y;
+		}
+
 		public static float Dot(int[] vec1, float x2, float y2) {
 			return vec1 [0] * x2 + vec1 [1] * y2;
 		}
@@ -57,7 +61,7 @@ namespace Util
 			return Vector3.Lerp (a, b, t);
 		}
 
-		// Used in Perlin noise
+		// Used in Perlin & value noise
 		public static float Fade (float t)
 		{
 			return t * t * t * (t * (t * 6f - 15f) + 10f);

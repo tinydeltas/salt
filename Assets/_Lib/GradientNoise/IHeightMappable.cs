@@ -8,6 +8,7 @@ namespace NoiseLib
 	public interface IHeightMappable<T>
 	{
 		float noise (T v);
+		float _noise(Vector3 v);
 	}
 		
 

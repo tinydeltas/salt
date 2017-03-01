@@ -12,17 +12,14 @@ namespace NoiseLib
 			new PerlinNoise(), 
 			new ValueNoise()
 		};
-
-
+			
 		public static MeshNoise[] OtherClasses = {
 			new DiamondSquare()
 		};
 			
 		public static int hashMask = 255;
-		public static int hashMask3D = 15;
 		public static int hashMask2D = 7;
 		public static float normFactor = Mathf.Sqrt(2f); 
-
 
 		public static int[][] gradients2D = {
 			new int[]{ 1, 0},
@@ -33,25 +30,6 @@ namespace NoiseLib
 			new int[]{-1, 1},
 			new int[]{1,-1},
 			new int[]{-1,-1}
-		};
-
-		public static int[][] gradients3D = {
-			new int[]{ 1, 1, 0 }, 
-			new int[] {1, 1, 0}, 
-			new int[] {-1, 1, 0}, 
-			new int[]{ -1, 1, 0 }, 
-			new int[]{ 1, -1, 0 }, 
-			new int[]{ -1, -1, 0 },
-			new int[]{ 1, 0, 1 }, 
-			new int[]{ -1, 0, 1 }, 
-			new int[]{ 1, 0, -1 }, 
-			new int[]{ -1, 0, -1 },
-			new int[]{ 0, 1, 1 }, 
-			new int[] {0, -1, 1}, 
-			new int[]{ 0, -1, 1 }, 
-			new int[]{ 0, 1, -1 },
-			new int[]{ 0, -1, -1 }, 
-			new int[]{0, -1, -1}
 		};
 
 		public static int[] hash = {
