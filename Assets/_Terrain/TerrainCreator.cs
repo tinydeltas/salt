@@ -13,9 +13,10 @@ public class TerrainCreator : MonoBehaviour
 	[Range (10, 200)]
 	public int resolution = 64;
 
-	// noise options 
+	// noise options
 	public NoiseLib.MappableTypes mappableType;
 	public NoiseLib.OtherTypes otherType;
+	// diamond square, voronoi
 
 	[Range (1, 8)]
 	public int octaves = 1;
@@ -23,17 +24,23 @@ public class TerrainCreator : MonoBehaviour
 	[Range (2f, 10f)]
 	public float frequency = 3f;
 
-	[Range(1f, 4f)]
+	[Range (1f, 4f)]
 	public float lacunarity = 2f;
 
-	[Range(0f, 1f)]
+	[Range (0f, 1f)]
 	public float persistence = 0.5f;
 
 	// noise ratios
-	public float value = 0.25f;
-	public float perlin = 0.25f;
-	public float exp = 0.25f;
-	public float voro = 0.25f;
+	public static float value_ratio = 0.25f;
+	public static float perlin_ratio = 0.25f;
+	public static float exp_ratio = 0.25f;
+	public static float voro_ratio = 0.25f;
+
+	float[] ratios = new float[] { 
+		value_ratio, perlin_ratio, 
+		exp_ratio, voro_ratio
+	};
+
 
 	// island opts
 
@@ -104,7 +111,7 @@ public class TerrainCreator : MonoBehaviour
 
 			for (int j = 0; j <= resolution; j++) {
 				Vector3 p = Vector3.Lerp (p0, p1, j * dx);
-				float height = noiseWithOctaves(cl, p, octaves, frequency, lacunarity, persistence);
+				float height = noiseWithOctaves (cl, p, octaves, frequency, lacunarity, persistence);
 
 //				Debug.Log ("p: " + p.ToString ());
 //				Debug.Log ("Height: " + height.ToString ()); 
@@ -181,7 +188,8 @@ public class TerrainCreator : MonoBehaviour
 		} else {
 			Debug.Log ("Recalculating normals.");
 			m.RecalculateNormals (); 
-		};
+		}
+		;
 
 		if (uv != null) {
 			Debug.Log ("Resetting uv.");
@@ -189,8 +197,18 @@ public class TerrainCreator : MonoBehaviour
 		}
 	}
 
-	private float noiseWithOctaves (IHeightMappable<Vector2> cl, Vector3 point, int octaves, float freq, float lacuna, float persist) {
-		float sum = cl.noise(point * freq);
+	private float combineOptions (IHeightMappable<Vector2>[] cls, Vector3 p, float[] priorities)
+	{
+		float finalHeight = 0f;
+		for (int i = 0; i < cls.Length; i++) {
+			finalHeight += cls [i].noise (p) * ratios [i];
+		}
+		return finalHeight;
+	}
+
+	private float noiseWithOctaves (IHeightMappable<Vector2> cl, Vector3 point, int octaves, float freq, float lacuna, float persist)
+	{
+		float sum = cl.noise (point * freq);
 
 		float amplitude = 1f;
 		float range = 1f;
@@ -199,7 +217,7 @@ public class TerrainCreator : MonoBehaviour
 			freq *= lacuna;
 			amplitude *= persist;
 			range += amplitude;
-			sum += cl.noise(point * freq) * amplitude;
+			sum += cl.noise (point * freq) * amplitude;
 		}
 		return sum / range;
 	}

@@ -70,6 +70,7 @@ namespace NoiseLib
 			int _10 = h [_1 + y0]; 
 			int _11 = h [_1 + y1]; 
 
+			// smooth the displacements
 			dx0 = M.Fade (dx0);
 			dy0 = M.Fade (dy0); 
 

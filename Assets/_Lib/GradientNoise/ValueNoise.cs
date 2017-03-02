@@ -8,13 +8,14 @@ namespace NoiseLib
 	public class ValueNoise : IHeightMappable<Vector2>
 	{
 
-		public float noise (Vector2 p) {
+		public float noise (Vector2 p)
+		{
 			// get constants 
 			int[] h = Constants.hash;
 			int m = Constants.hashMask;
 
 			// get int version 
-			int x0 = M.Floor(p.x); 
+			int x0 = M.Floor (p.x); 
 			int y0 = M.Floor (p.y); 
 
 			// get starting displacements
@@ -53,7 +54,7 @@ namespace NoiseLib
 			return prod - 0.5f; 
 		}
 
-		// four-dimensional version 
+		// four-dimensional version
 		public float _noise (Vector3 p)
 		{
 			// get constants
@@ -97,9 +98,9 @@ namespace NoiseLib
 			int x111 = h [_11 + z1];
 
 			// get the smoothed floor displacements
-			float dx = M.Fade(p.x - x0); 
-			float dy = M.Fade(p.y - y0); 
-			float dz = M.Fade(p.z - z0);
+			float dx = M.Fade (p.x - x0); 
+			float dy = M.Fade (p.y - y0); 
+			float dz = M.Fade (p.z - z0);
 
 			// Do the interpolation 
 			float p1 = M.Lerp (x000, x100, dx); 
@@ -110,7 +111,7 @@ namespace NoiseLib
 			float p4 = M.Lerp (x011, x111, dx); 
 			float t1 = M.Lerp (p3, p4, dy);
 
-			float z = M.Lerp(t0, t1, dz);
+			float z = M.Lerp (t0, t1, dz);
 				
 			// normalize the result 
 			float prod = z / m; 

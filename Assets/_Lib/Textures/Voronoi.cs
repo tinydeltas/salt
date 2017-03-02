@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VoronoiImpl : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-		
-	}
+namespace Textures
+{
 	
-	// Update is called once per frame
-	void Update () {
-		
+	public class VoronoiImpl
+	{
+
 	}
+
 }

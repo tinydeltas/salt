@@ -87,8 +87,8 @@ namespace NoiseLib
 			// v = h'(p01)p  * h(p01) 
 			int[] _x01 = g [h [_01] & gm]; 
 			int[] _x11 = g [h [_11] & gm];
-			l1 = e[_01] * p_01; 
-			l2 = e[_11] * p_11;
+			l1 = e [_01] * p_01; 
+			l2 = e [_11] * p_11;
 			float x01 = M.Dot (_x01, l1); 
 			float x11 = M.Dot (_x11, l2);
 
