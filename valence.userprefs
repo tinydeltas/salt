@@ -1,20 +1,16 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Terrain/TerrainCreator.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Lib/GradientNoise/ValueNoise.cs">
     <Files>
-      <File FileName="Assets/_Lib/GradientNoise/DiamondSquare.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Terrain/MeshCreator.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Editor/TerrainCreatorInspector.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Lib/GradientNoise/Constants.cs" Line="17" Column="23" />
-      <File FileName="Assets/_Lib/GradientNoise/ExpNoise.cs" Line="84" Column="4" />
-      <File FileName="Assets/_Lib/GradientNoise/IHeightMappable.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Terrain/TerrainCreator.cs" Line="22" Column="2" />
-      <File FileName="Assets/Learning/Surface/SurfaceCreator.cs" Line="22" Column="14" NotebookId="1" />
-      <File FileName="Assets/Learning/Surface/NewSurfaceShader.shader" Line="16" Column="32" NotebookId="1" />
-      <File FileName="Assets/_Materials/TerrainShader.shader" Line="8" Column="13" NotebookId="1" />
-      <File FileName="Assets/_Lib/GradientNoise/PerlinNoise.cs" Line="42" Column="4" NotebookId="1" />
-      <File FileName="Assets/_Lib/Util/Math.cs" Line="24" Column="33" NotebookId="1" />
-      <File FileName="Assets/Learning/Surface/Noise.cs" Line="338" Column="8" NotebookId="1" />
+      <File FileName="Assets/_Lib/Util/Pattern.cs" Line="1" Column="1" />
+      <File FileName="Assets/_Lib/GradientNoise/DiamondSquare.cs" Line="25" Column="21" />
+      <File FileName="Assets/_Lib/GradientNoise/ValueNoise.cs" Line="72" Column="13" />
+      <File FileName="Assets/_Lib/Util/Math.cs" Line="96" Column="4" />
+      <File FileName="Assets/_Lib/Mesh/MeshUtil.cs" Line="79" Column="3" />
+      <File FileName="Assets/_Lib/Textures/Voronoi.cs" Line="13" Column="2" />
+      <File FileName="Assets/_Lib/GradientNoise/PerlinNoise.cs" Line="82" Column="4" NotebookId="1" />
+      <File FileName="Assets/Learning/Surface/Noise.cs" Line="108" Column="4" NotebookId="1" />
+      <File FileName="Assets/Learning/Surface/SurfaceCreator.cs" Line="73" Column="7" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

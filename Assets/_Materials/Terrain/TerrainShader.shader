@@ -32,6 +32,7 @@
 			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
 			o.Albedo = c.rgb * IN.color.rgb;
 			o.Alpha = c.a * IN.color.a;
+//			o.Alpha = 0.2;
 		}
 		ENDCG
 	}

@@ -3,5 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GlobalSeeder {
-	// passed in density, etc, params 
+	// Place random seeds on a map of size nxn blocks, 
+	// where each block is created in TerrainCreator 
+	// with a set resolution, etc
+
+	public GlobalSeeder ( float density, int nBlocks) {
+
+
+
+
+	}
 }

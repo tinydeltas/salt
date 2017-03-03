@@ -7,16 +7,23 @@ using NoiseLib;
 // Controls basically everything
 public class TerrainCreator : MonoBehaviour
 {
-
-	// basic options
+	[Header ("basic options")]
 
 	[Range (10, 200)]
 	public int resolution = 64;
 
-	// noise options
-	public NoiseLib.MappableTypes mappableType;
-	public NoiseLib.OtherTypes otherType;
-	// diamond square, voronoi
+	public float island_level = -1;
+
+	[Range(1, 10)]
+	public int num_blocks = 1;
+
+	[Range(1, 10)] 
+	public int num_workers = 1;
+
+	public bool island_mode = true;
+
+	// -------------------------------------
+	[Header ("noise options")]
 
 	[Range (1, 8)]
 	public int octaves = 1;
@@ -30,27 +37,50 @@ public class TerrainCreator : MonoBehaviour
 	[Range (0f, 1f)]
 	public float persistence = 0.5f;
 
-	// noise ratios
-	public static float value_ratio = 0.25f;
-	public static float perlin_ratio = 0.25f;
-	public static float exp_ratio = 0.25f;
-	public static float voro_ratio = 0.25f;
-
-	float[] ratios = new float[] { 
-		value_ratio, perlin_ratio, 
-		exp_ratio, voro_ratio
-	};
-
-
-	// island opts
+	// -------------------------------------
+	[Header ("noise ratios")]
 
 	[Range (0f, 1f)]
-	public float islandDensity = 0.2f;
+	public float value_ratio = 0.25f;
+	[Range (0f, 1f)]
+	public float perlin_ratio = 0.25f;
+	[Range (0f, 1f)]
+	public float exp_ratio = 0.25f;
 
-	public float avgHeight = 2;
+	[HideInInspector]
+	public float[] ratios;
 
-	// texture opts
+	public bool use_diamond_square = false;
+
+	[Range (0f, 1f)]
+	public static float diamond_ratio = 0.25f;
+
+	// -------------------------------------
+	[Header ("island shape opts")]
+
+	public bool mask_island = true;
+
+	public MeshLib.MaskTypes mask_type;
+
+	[Range (0f, 1f)]
+	public float island_size = 0.5f;
+
+	// -------------------------------------
+	[Header ("texture / aesthetic opts")]
 	public Gradient coloring;
+
+	// -------------------------------------
+	[Header ("global seeding opts")]
+
+	[Range (0f, 1f)]
+	public float island_density = 0.2f;
+
+	// -------------------------------------
+	[Header ("test opts")]
+
+	[ContextMenuItem ("Random configuration!", "genRandom")]
+
+	public int num_tiles = 1;
 
 	// -------------------------------------
 	// Private variables
@@ -62,6 +92,12 @@ public class TerrainCreator : MonoBehaviour
 	private Vector3[] norms;
 	private Color[] colors;
 
+	void genRandom ()
+	{
+
+
+	}
+
 	private void init ()
 	{
 		if (m == null) {
@@ -70,7 +106,6 @@ public class TerrainCreator : MonoBehaviour
 			GetComponent<MeshFilter> ().mesh = m;
 			Debug.Log ("Assigned mesh");
 		} 
-
 	}
 
 	private void updateParams ()
@@ -79,11 +114,19 @@ public class TerrainCreator : MonoBehaviour
 			createNewMesh (resolution);
 			curRes = resolution; 
 		} 
+		ratios = new float[] {
+			exp_ratio,
+			perlin_ratio,
+			value_ratio,
+		};
+		Vector3 pos = GetComponent<Transform> ().position; 
+		pos.y = island_level;
 	}
 
 	void onEnable ()
 	{
 		Debug.Log ("In enable.");
+
 		RenderTerrain ();
 	}
 
@@ -96,7 +139,7 @@ public class TerrainCreator : MonoBehaviour
 		Vector3[] vecs = MeshUtil.Constants.UnitVectors2D;
 
 		// extract parameters 
-		IHeightMappable<Vector2> cl = NoiseLib.Constants.MappableClasses [(int)mappableType];
+		IHeightMappable<Vector2>[] cls = NoiseLib.Constants.MappableClasses;
 
 		// call the methods. 
 		int v = 0; 
@@ -111,14 +154,19 @@ public class TerrainCreator : MonoBehaviour
 
 			for (int j = 0; j <= resolution; j++) {
 				Vector3 p = Vector3.Lerp (p0, p1, j * dx);
-				float height = noiseWithOctaves (cl, p, octaves, frequency, lacunarity, persistence);
+				float height = genNoise (cls, p);
+
+				if (mask_island && island_mode) {
+					MeshLib.MaskMethod m = MeshLib.Mask.MaskMethods [(int)mask_type];
+					height = MeshLib.Mask.Transform (p, height, island_size, m);
+				}
 
 //				Debug.Log ("p: " + p.ToString ());
 //				Debug.Log ("Height: " + height.ToString ()); 
 //				Debug.Log ("Current vertex: " + verts [v].ToString ());
 
 				verts [v].y = height;
-				colors [v] = coloring.Evaluate (height + 0.5f);
+				colors [v] = height <= 0.0f ? Color.clear : coloring.Evaluate (height + 0.5f);
 
 				v++;
 			}
@@ -126,14 +174,12 @@ public class TerrainCreator : MonoBehaviour
 
 		Debug.Log ("Number of verts assigned in RenderTerrain" + v.ToString ()); 
 		setMesh (verts, colors); 
-
 	}
 
 	// creates new mesh (w triangles, etc) given the new resolution
 	private void createNewMesh (int resolution)
 	{
 		m.Clear (); 
-
 
 		int numVerts = (resolution + 1) * (resolution + 1);
 
@@ -148,7 +194,7 @@ public class TerrainCreator : MonoBehaviour
 			for (int j = 0; j <= resolution; j++) {
 				verts [v] = new Vector3 (j * u - 0.5f, 0f, i * u - 0.5f); 
 				norms [v] = Vector3.up;
-				colors [v] = Color.white;
+				colors [v] = Color.clear;
 				uv [v] = new Vector2 (j * u, i * u);
 
 				v++;
@@ -166,7 +212,6 @@ public class TerrainCreator : MonoBehaviour
 //		for (int i = 0; i < m.triangles.Length; i++) {
 //			Debug.Log (" " + m.triangles [i].ToString());
 //		}
-
 	}
 
 	// all-in one operation
@@ -197,11 +242,14 @@ public class TerrainCreator : MonoBehaviour
 		}
 	}
 
-	private float combineOptions (IHeightMappable<Vector2>[] cls, Vector3 p, float[] priorities)
+	private float genNoise (IHeightMappable<Vector2>[] cls, Vector3 point)
 	{
 		float finalHeight = 0f;
 		for (int i = 0; i < cls.Length; i++) {
-			finalHeight += cls [i].noise (p) * ratios [i];
+			if (ratios [i] == 0f) {
+				continue;
+			}
+			finalHeight += noiseWithOctaves (cls [i], point, octaves, frequency, lacunarity, persistence) * ratios [i];
 		}
 		return finalHeight;
 	}

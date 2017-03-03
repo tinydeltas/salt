@@ -16,7 +16,6 @@ public class TerrainCreatorInspector : Editor {
 	}
 
 	private void RefreshCreator () {
-		//@todo
 		if (Application.isPlaying) {
 			creator.RenderTerrain ();
 		}
