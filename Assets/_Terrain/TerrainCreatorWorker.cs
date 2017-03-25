@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// spawns new threads for displaying the map meshes 
 public class TerrainCreatorWorker : MonoBehaviour {
 
 	// Use this for initialization

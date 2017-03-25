@@ -1,16 +1,20 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Lib/GradientNoise/ValueNoise.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Terrain/Pipeline/Nav.cs">
     <Files>
-      <File FileName="Assets/_Lib/Util/Pattern.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Lib/GradientNoise/DiamondSquare.cs" Line="25" Column="21" />
-      <File FileName="Assets/_Lib/GradientNoise/ValueNoise.cs" Line="72" Column="13" />
-      <File FileName="Assets/_Lib/Util/Math.cs" Line="96" Column="4" />
-      <File FileName="Assets/_Lib/Mesh/MeshUtil.cs" Line="79" Column="3" />
-      <File FileName="Assets/_Lib/Textures/Voronoi.cs" Line="13" Column="2" />
-      <File FileName="Assets/_Lib/GradientNoise/PerlinNoise.cs" Line="82" Column="4" NotebookId="1" />
-      <File FileName="Assets/Learning/Surface/Noise.cs" Line="108" Column="4" NotebookId="1" />
-      <File FileName="Assets/Learning/Surface/SurfaceCreator.cs" Line="73" Column="7" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Island.cs" Line="93" Column="32" />
+      <File FileName="Assets/_Terrain/Pipeline/Nav.cs" Line="118" Column="5" />
+      <File FileName="Assets/_Terrain/Pipeline/Opt.cs" Line="11" Column="3" />
+      <File FileName="Assets/_Terrain/TerrainCreatorWorker.cs" Line="10" Column="3" />
+      <File FileName="Assets/_Lib/Mesh/Mask.cs" Line="16" Column="12" />
+      <File FileName="Assets/_Lib/Textures/CellularTemplate.cs" Line="7" Column="31" />
+      <File FileName="Assets/_Lib/Textures/SolidTextureTemplate.cs" Line="7" Column="35" />
+      <File FileName="Assets/_Materials/MaterialController.cs" Line="9" Column="10" />
+      <File FileName="Assets/_Terrain/TerrainCreator.cs" Line="95" Column="22" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Tile.cs" Line="76" Column="24" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Constants.cs" Line="8" Column="1" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Seeder.cs" Line="27" Column="2" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Mesh.cs" Line="1" Column="1" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

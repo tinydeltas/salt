@@ -6,6 +6,9 @@ namespace MeshLib
 {
 	class MeshUtil
 	{
+		//==============================================
+		// for diamond/square stuff
+
 		// starts at the upper left and goes clockwise
 		// return set <=8 of the neighbors of the vertex
 		// (Basically converting from a 1d to 2d representation)
@@ -16,8 +19,8 @@ namespace MeshLib
 
 			int[] neighbors = new int[] {
 				n2 [0], n1 [0], n2 [1], // first row 
-				n1[1], n1[2], // second row 
-				n2[2], n1[3], n2[3] // third row 
+				n1 [1], n1 [2], // second row 
+				n2 [2], n1 [3], n2 [3] // third row 
 			}; 
 
 			return neighbors;
@@ -44,7 +47,7 @@ namespace MeshLib
 			return neighbors;
 		}
 
-		// starting from the top left 
+		// starting from the top left
 		public static int[] getSquareNeighbors (int idx, int res)
 		{
 			int[] neighbors = new int[] { -1, -1, -1, -1 }; 
@@ -64,21 +67,24 @@ namespace MeshLib
 			return neighbors;
 		}
 
-		public static int getIdx(int res, float x, float y) {
+		public static int getIdx (int res, float x, float y)
+		{
 			return 0;
-
 		}
 
-		public static Vector2 getPoint(int res, int idx) {
+		public static Vector2 getPoint (int res, int idx)
+		{
 			return new Vector2 (getX (res, idx), getY (res, idx));
 		}
 
-		public static int getX(int idx, int res) {
+		public static int getX (int idx, int res)
+		{
 			return idx % res;
-		} 
+		}
 
-		public static int getY(int idx, int res) {
-			return (int) Mathf.Floor (idx / (float) res);
+		public static int getY (int idx, int res)
+		{
+			return (int)Mathf.Floor (idx / (float)res);
 
 		}
 
@@ -111,5 +117,4 @@ namespace MeshLib
 			return quads;
 		}
 	}
-
 }

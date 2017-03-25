@@ -2,15 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SolidTextureTemplate : MonoBehaviour {
+namespace TextureLib
+{
+	static class SolidTextureTemplate
+	{
 
-	// Use this for initialization
-	void Start () {
-		
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
 }

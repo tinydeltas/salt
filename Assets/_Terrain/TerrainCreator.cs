@@ -26,7 +26,7 @@ public class TerrainCreator : MonoBehaviour
 	[Header ("noise options")]
 
 	[Range (1, 8)]
-	public int octaves = 1;
+	public int octaves = 5;
 
 	[Range (2f, 10f)]
 	public float frequency = 3f;
@@ -35,7 +35,7 @@ public class TerrainCreator : MonoBehaviour
 	public float lacunarity = 2f;
 
 	[Range (0f, 1f)]
-	public float persistence = 0.5f;
+	public float persistence = 0.4f;
 
 	// -------------------------------------
 	[Header ("noise ratios")]
@@ -70,12 +70,6 @@ public class TerrainCreator : MonoBehaviour
 	public Gradient coloring;
 
 	// -------------------------------------
-	[Header ("global seeding opts")]
-
-	[Range (0f, 1f)]
-	public float island_density = 0.2f;
-
-	// -------------------------------------
 	[Header ("test opts")]
 
 	[ContextMenuItem ("Random configuration!", "genRandom")]
@@ -94,10 +88,10 @@ public class TerrainCreator : MonoBehaviour
 
 	void genRandom ()
 	{
-
-
+		//todo 
 	}
 
+	// initialize terrain 
 	private void init ()
 	{
 		if (m == null) {
@@ -123,10 +117,9 @@ public class TerrainCreator : MonoBehaviour
 		pos.y = island_level;
 	}
 
+	// every time this component is enabled
 	void onEnable ()
 	{
-		Debug.Log ("In enable.");
-
 		RenderTerrain ();
 	}
 
@@ -166,7 +159,7 @@ public class TerrainCreator : MonoBehaviour
 //				Debug.Log ("Current vertex: " + verts [v].ToString ());
 
 				verts [v].y = height;
-				colors [v] = height <= 0.0f ? Color.clear : coloring.Evaluate (height + 0.5f);
+				colors [v] = coloring.Evaluate (height + 0.5f);
 
 				v++;
 			}
@@ -174,7 +167,12 @@ public class TerrainCreator : MonoBehaviour
 
 		Debug.Log ("Number of verts assigned in RenderTerrain" + v.ToString ()); 
 		setMesh (verts, colors); 
+
+		transform.GetComponent<MeshCollider> ().sharedMesh = m;
+
+		Debug.Log ("Set shared mesh");
 	}
+		
 
 	// creates new mesh (w triangles, etc) given the new resolution
 	private void createNewMesh (int resolution)
@@ -207,27 +205,14 @@ public class TerrainCreator : MonoBehaviour
 			
 		setMesh (verts, colors, norms, uv);
 		m.triangles = MeshLib.MeshUtil.GetTriangles (resolution);
-
-//		Debug.Log ("Triangles: " );
-//		for (int i = 0; i < m.triangles.Length; i++) {
-//			Debug.Log (" " + m.triangles [i].ToString());
-//		}
 	}
 
 	// all-in one operation
 	private void setMesh (Vector3[] vertices, Color[] colors, Vector3[] normals = null, Vector2[] uv = null)
 	{
 		m.colors = colors;
-
 		m.vertices = vertices;
 
-		Debug.Log ("Setting mesh. vertices: " + vertices.Length.ToString ());
-		Debug.Log ("set colors: " + colors.ToString ());
-
-//		for (int i = 0; i < m.colors.Length; i++) {
-//			Debug.Log (" " + m.colors [i].ToString());
-//		}
-//
 		if (normals != null) {
 			m.normals = normals; 
 		} else {

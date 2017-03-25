@@ -21,6 +21,11 @@ namespace MeshLib
 			SquareTransform
 		};
 
+		//todo
+		public static MaskMethod GenRandom() {
+			return RoundTransform;
+		}
+
 		public static float Transform(Vector3 p, float noise, float size, MaskMethod m) {
 			float distance = m(p, size);
 
@@ -52,7 +57,7 @@ namespace MeshLib
 			return Mathf.Max(distance_x, distance_y);
 		}
 
-		public float AlphaTransform(float cutoff) {
+		private float AlphaTransform(float cutoff) {
 			return 0f;
 		}
 

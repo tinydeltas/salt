@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Textures
+namespace TextureLib
 {
 	
-	public class VoronoiImpl
+	public static class Voronoi
 	{
 
 	}
