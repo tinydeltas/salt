@@ -5,10 +5,11 @@ using MeshLib;
 
 namespace Pipeline
 {
-	public class OceanTile 
+	public class OceanTile
 	{
-
-		public static SortedDictionary<Dir, Vector2> DirVecs = new SortedDictionary<Dir, Vector2> {
+		
+		
+		public static Dictionary<Dir, Vector2> DirVecs = new Dictionary<Dir, Vector2> {
 			{Dir.TopLeft, new Vector2 (-1, 1)}, 
 			{Dir.Top, new Vector2 (0, 1)}, 
 			{Dir.TopRight, new Vector2 (1, 1)}, 
@@ -18,32 +19,35 @@ namespace Pipeline
 			{Dir.Bottom, new Vector2 (0, -1)}, 
 			{Dir.BottomRight, new Vector2 (1, -1)}
 		};
-		
-		// state that is kept track of within the tile
+			
+		// when this tile was created 
 		[SerializeField]
-		private LinkedList<Island> activeIslands;
+		private System.DateTime created = System.DateTime.Now;
+
+		// generate random ID (might be useful later on?) 
+		[SerializeField] 
+		private System.Guid id = System.Guid.NewGuid(); 
 
 		// initialize a new tile, which controls the islands and stuff
-		public OceanTile (Vector2 init, float size, Seeder s)
+		public OceanTile (Vector3 init, float size, Seeder s)
 		{
 			Debug.Log ("[Tile] Initializing");
+//			Debug.Log ("[Tile] ID: " + id.ToString ()); 
+
 			Coor = init;
 			Size = size;
+			Scale = new Vector3 (size/10, 1f, size/10);
 
-			activeNeighbors = new SortedDictionary<Vector2, OceanTile> (); 
-
-			// create set of islands 
+			activeNeighbors = new Dictionary<Vector2, OceanTile> ();
 			activeIslands = new LinkedList<Island> (); 
 
-			LinkedList<Vector2> islePos = s.Seed (Coor, Size);
+			// initialize islands 
+			LinkedList<Vector2> islePos = s.Seed (Coor, size);
 			foreach (Vector2 pos in islePos) {
 				activeIslands.AddFirst (new Island (AdjustPos (pos)));  
 			}
 
-			Debug.Log ("[Tile] Islands created: " + islePos);
-
-			//todo: add ocean tile component with correct dimensions ? 
-
+//			Debug.Log ("[Tile] Islands created: " + islePos.ToString());
 		}
 
 		private Vector2 AdjustPos (Vector2 islePos)
@@ -59,42 +63,61 @@ namespace Pipeline
 		//==============================================
 		//getter/setter functions
 
-		// ID for the tile; its location on global map
-		public Vector2 Coor { get; private set; }
+		// its location on global map
+		[SerializeField]
+		public Vector3 Coor { get; private set; }
 
+		// size of each side of the tile 
+		[SerializeField]
 		public float Size { get; private set; }
 
 		[SerializeField]
-		public SortedDictionary<Vector2, OceanTile> activeNeighbors {
-			get;
-			private set;
-		}
+		public Vector3 Scale { get; private set; }
 
-		public void AddNeighbor (Dir d, OceanTile t)
-		{
-			Vector2 dirVec = DirVecs [d];
-			if (activeNeighbors) {
-				Debug.Log ("Trying to replace a neighbor which already exists.");
-				return;
-			}
-			;
-			activeNeighbors.Add (dirVec, t); 
-		}
+		// its active islands
+		[SerializeField]
+		public  LinkedList<Island> activeIslands { get; private set; } 
+
+		// its active neighbors
+		[SerializeField]
+		public Dictionary<Vector2, OceanTile> activeNeighbors { get; private set; }
+
 
 		//==============================================
-		// for optimization purposes
+		// interfacing with class members
+
+		public bool AddNeighbor (Dir d, OceanTile t)
+		{
+			Vector2 dirVec = DirVecs [d];
+			return AddNeighbor (dirVec, t);
+		}
+
+		public bool AddNeighbor(Vector2 dirVec, OceanTile t){
+			if (activeNeighbors.ContainsKey(dirVec)) {
+				Debug.Log ("[Tile] [AddNeighbor] Trying to replace a neighbor which already exists.");
+				return false;
+			}
+			activeNeighbors.Add (dirVec, t); 
+			return true;
+		}
+
 		public void RemoveNeighbor (Dir d)
 		{
-			activeNeighbors.Remove (DirVecs[d]);
+			RemoveNeighbor(DirVecs[d]);
 		}
 			
 		public void RemoveNeighbor(Vector2 d) {
+			Debug.Log ("[Tile] [RemoveNeighbor] for: " + this.ToString ()); 
 			activeNeighbors.Remove (d);
 		}
 
+		//==============================================
+		// state
+
+		// deactivation for optimization purposes 
 		public void deactivateTile ()
 		{
-			Debug.Log ("[Tile] Deactivating entire tile.");
+			Debug.Log ("[Tile] Deactivating: " + this.ToString());
 
 			// deactivate islands 
 			foreach (Island i in activeIslands) {
@@ -108,73 +131,82 @@ namespace Pipeline
 		// UTIL
 
 		// checks whether a loc is in tile
-		public bool inTile (Vector2 loc)
+		public bool inTile (Vector3 loc)
 		{
+//			Debug.Log ("Vector: " + loc.ToString () + " Coor:" + Coor.ToString());
 			return loc.x >= Coor.x && loc.x < (Coor.x + Size) &&
-			loc.y >= Coor.y || loc.y < (Coor.y + Size);
+					loc.z >= Coor.z && loc.z < (Coor.z + Size);
+		}
+
+		override
+		public string ToString() {
+			return "[Coor]" + this.Coor + "\t[Size]" + this.Size
+			+ "[#Neighbors]" + activeNeighbors.Count 
+			+ "[#Islands]" + activeIslands.Count;
+
 		}
 
 		// checks whether a loc is within percentage of the boundary)
-		public Quadrant withinBoundary (Vector2 loc, float percent)
-		{
-			if (percent > 0.3f) {
-				Debug.LogError ("[Tile] Attempted to calculate cell boundary with unusually high percentage.");
-				return Quadrant.None;
-			}
-			; 
-
-			if (!inTile (loc)) {
-				Debug.LogError ("[Tile] Attempted to check boundary for coordinate not in tile.");
-				return Quadrant.None;
-			}
-
-			Quadrant dir = Quadrant.None;
-
-			float x = loc.x - Coor.x; 
-			float y = loc.y - Coor.y; 
-			float upper = 1f - percent;
-
-			bool xLeft = x < percent * Size;
-			bool yTop = y > upper * Size;
-
-			bool xQuadLeft = x <= Size / 2f; 
-			bool yQuadTop = y > Size / 2f;
-
-			// Upper left quadrant has two cases 
-			if (xLeft && yQuadTop ||
-			   xQuadLeft && yTop) {
-				dir = Quadrant.UpperLeft;
-			}
-
-			bool xRight = x > upper * Size;
-			bool xQuadRight = x > Size / 2f; 
-
-			// upper right 
-			if (xRight && yQuadTop ||
-			   xQuadRight && yTop) {
-				dir = Quadrant.UpperRight;
-			}
-
-			bool yBottom = y < percent * Size;
-			bool yQuadBottom = y <= Size / 2f; 
-
-			// lower left 
-			if (xLeft && yQuadBottom ||
-			   xQuadLeft && yBottom) {
-				dir = Quadrant.LowerLeft;
-			}
-			
-			// lower right
-			if (xRight && yQuadBottom ||
-			   xQuadRight && yBottom) {
-				dir = Quadrant.LowerRight; 
-			}
-
-			if (dir != Quadrant.None) {
-				Debug.Log ("[Tile] Final dir: " + dir);
-			};
-			return dir; 
-		}
+//		public Quadrant withinBoundary (Vector2 loc, float percent)
+//		{
+//			if (percent > 0.3f) {
+//				Debug.LogError ("[Tile] Attempted to calculate cell boundary with unusually high percentage.");
+//				return Quadrant.None;
+//			}
+//			; 
+//
+//			if (!inTile (loc)) {
+//				Debug.LogError ("[Tile] Attempted to check boundary for coordinate not in tile.");
+//				return Quadrant.None;
+//			}
+//
+//			Quadrant dir = Quadrant.None;
+//
+//			float x = loc.x - Coor.x; 
+//			float y = loc.y - Coor.y; 
+//			float upper = 1f - percent;
+//
+//			bool xLeft = x < percent * Size;
+//			bool yTop = y > upper * Size;
+//
+//			bool xQuadLeft = x <= Size / 2f; 
+//			bool yQuadTop = y > Size / 2f;
+//
+//			// Upper left quadrant has two cases 
+//			if (xLeft && yQuadTop ||
+//			   xQuadLeft && yTop) {
+//				dir = Quadrant.UpperLeft;
+//			}
+//
+//			bool xRight = x > upper * Size;
+//			bool xQuadRight = x > Size / 2f; 
+//
+//			// upper right 
+//			if (xRight && yQuadTop ||
+//			   xQuadRight && yTop) {
+//				dir = Quadrant.UpperRight;
+//			}
+//
+//			bool yBottom = y < percent * Size;
+//			bool yQuadBottom = y <= Size / 2f; 
+//
+//			// lower left 
+//			if (xLeft && yQuadBottom ||
+//			   xQuadLeft && yBottom) {
+//				dir = Quadrant.LowerLeft;
+//			}
+//			
+//			// lower right
+//			if (xRight && yQuadBottom ||
+//			   xQuadRight && yBottom) {
+//				dir = Quadrant.LowerRight; 
+//			}
+//
+//			if (dir != Quadrant.None) {
+//				Debug.Log ("[Tile] Final dir: " + dir);
+//			};
+//			return dir; 
+//		}
 	}
 
 }

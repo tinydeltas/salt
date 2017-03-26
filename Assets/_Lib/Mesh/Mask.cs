@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MeshLib
 {
-	delegate float MaskMethod(Vector3 p, float size); 
+	public delegate float MaskMethod(Vector3 p, float size); 
 
 	public enum MaskTypes {
 		Circular, 
@@ -13,7 +13,7 @@ namespace MeshLib
 		Square,
 	};
 
-	class Mask
+	public class Mask
 	{
 		public static MaskMethod[] MaskMethods = {
 			RadialTransform, 

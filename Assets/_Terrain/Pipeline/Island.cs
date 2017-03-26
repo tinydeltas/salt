@@ -8,7 +8,7 @@ using Util;
 
 namespace Pipeline
 {
-	class Island 
+	public class Island 
 	{
 		private Mesh[] islandMesh = null;
 

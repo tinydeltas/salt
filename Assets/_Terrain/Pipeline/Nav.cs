@@ -9,122 +9,250 @@ namespace Pipeline
 	// attaches to first person controller
 	public class Nav : MonoBehaviour
 	{
+		// constants
+		public const string advancedWaterPrefabPath = "Water4Advanced";
+		
+		// basic options
+		public NeighborType type = NeighborType.vonNeumann;
+		public float tileSize = 10f;
+		public float boundarySize = 0.2f;
+		public bool testTile = false;
+
 		[SerializeField]
-		private SortedDictionary<OceanTile, bool[]> activeTiles = null;
+		private static Dictionary<Vector3, OceanTile> activeTiles = null;
 		[SerializeField]
-		private OceanTile curTile;
+		private static Dictionary<Vector3, OceanTile> allTiles = null;
+		[SerializeField]
+		private static OceanTile curTile = null;
+		[SerializeField] 
+		private static int totalTiles = 0;
+		[SerializeField] 
+		private static int numActive = 0;
+
+		private static Dictionary<NeighborType, Dir[]> neighborToDir = 
+			new Dictionary<NeighborType, Dir[]> { 
+				{ NeighborType.vonNeumann, new Dir[4] { Dir.Top, Dir.Left, Dir.Right, Dir.Bottom } }, {
+					NeighborType.Complete,
+					new Dir[8] {
+						Dir.Top,
+						Dir.Left,
+						Dir.Right,
+						Dir.Bottom,
+						Dir.TopLeft,
+						Dir.TopRight,
+						Dir.BottomLeft,
+						Dir.BottomRight
+					}
+				}
+			};
 
 		private Seeder seeder;
-
-		// basic options
-		public static float tileSize = 50f;
-		public static float boundarySize = 0.2f;
 
 		// Use this for initialization
 		void Start ()
 		{
 			Debug.Log ("[Nav] Initializing");
 			seeder = new Seeder ();
+			activeTiles = new Dictionary<Vector3, OceanTile> ();
+			allTiles = new Dictionary<Vector3, OceanTile> ();
 
 			// start player at origin 
 			Transform t = GetComponent<Transform> (); 
-			t.position = new Vector3 (0, 0, 0);
+			t.position = new Vector3 (0.5f, 0, 0.5f);
 
-			// allocate initial tile 
-			activeTiles = new SortedDictionary<OceanTile, bool[]> ();
+			// allocate initial tile
+			Debug.Log ("[Nav] Adding initial tile");
 
-			OceanTile firstTile = new OceanTile (Vector2.zero, tileSize, seeder);
-			activeTiles.Add (firstTile, new bool[4]);
-
+			// this will introduce an exception and make the first tile set at (0, 0)
+			OceanTile firstTile = addUnexploredTile (GetTileKey (t.position));
 			curTile = firstTile;
 		}
 	
 		// Update is called once per frame
 		void Update ()
 		{
-			Transform t = GetComponent<Transform> (); 
+			Vector3 position = GetComponent<Transform> ().position; 
+			// update current tile if needed and display its neighborhood
+			if (curTile == null || !curTile.inTile (position)) {
+				Vector3 key = GetTileKey (position);
 
-			// update current tile if needed 
-			if (!curTile.inTile (t.position)) {
-				Vector2 key = GetTileKey (t.position);
-				OceanTile newTile = activeTiles [key];
-
-				Debug.Log ("[Nav] In new tile, updating curTile");
-				Debug.Log ("[Nav] Current tile coor: " + key.ToString ());
-
-				if (newTile == null) {
-					Debug.LogError ("[Nav] ActiveTiles doesn't contain current tile.");
-					newTile = new OceanTile (key, tileSize, seeder);
-					activeTiles.Add (key, newTile); 
+				Debug.Log ("[Nav] [update] In new tile, updating curTile with key: " + key);
+			
+				// get the new tile 
+				OceanTile tile; 
+				if (!activeTiles.ContainsKey (key)) {
+					tile = addUnexploredTile (position);
+				} else {
+					tile = activeTiles [key];
 				}
-				curTile = newTile;
+				curTile = tile;
+				Debug.Log ("[Nav] \t Navigated to tile: " + curTile.ToString ());
+			}
+		}
+
+		private OceanTile addUnexploredTile (Vector3 refPos)
+		{
+			Debug.Log ("[Nav] [addUnexploredTile] Init, OR Navigating to Unexplored tile.");
+			Debug.Log ("[Nav] [addUnexploredTile] Active tiles: " + numActive.ToString ()); 
+			Debug.Log ("[Nav] [addUnexploredTile] Total (displayed) tiles: " + totalTiles.ToString ());
+
+			Vector3 init = GetTileKey (refPos);
+			Debug.Log ("[Nav] \t init: " + init.ToString ());
+
+
+			OceanTile t; 
+			if (curTile != null ) {
+				Vector2 d = getDirFromVec (init, curTile.Coor);
+				if (type == NeighborType.vonNeumann && isCornerDir (d)){
+					// only make new tile if it's an edge case 
+					t = addNeighborTile (curTile, d);
+				}
+				else {
+					// just try to figure it out using neighbors list
+					//				Vector2 dir = getDirFromVec (refPos, curTile.Coor);
+					Debug.Log("Direction: " + d.ToString());
+					t = curTile.activeNeighbors [d];
+				}
+			} else {
+				// the original! 
+				t = __newTile(init);
+			}
+				
+			// in all cases, officially added to active "explored" tiles list
+			activeTiles.Add (init, t);
+			numActive++;
+
+			// add neighbors (some may already be filled in
+			Dir[] dirs = neighborToDir [type];
+			foreach (Dir direction in dirs) {
+				addNeighborTile (t, OceanTile.DirVecs[direction]);
+			}
+				
+			Debug.Log ("[Nav] New tile added: " + t.ToString ());
+			return t;
+		}
+
+		// create and link a new tile to its neighbor based on its direction
+		private OceanTile addNeighborTile (OceanTile orig, Vector2 d)
+		{
+			// get prospective key 
+			Vector3 init = GetNeighborTileKey (orig.Coor, d);
+			Vector2 o = oppositeDir (d);
+
+			Debug.Log ("[Nav] \t initVec: " + init.ToString ());
+
+			if (curTile != null && curTile.Coor == init) {
+				// make sure this is reall....
+				// don't need to make new plane, it already exists
+				orig.AddNeighbor (d, curTile);
+				return curTile; 
+			} else if (allTiles.ContainsKey (init)) {
+				// quick indexing 
+				OceanTile exists = allTiles [init];
+				orig.AddNeighbor (d, exists); 
+				return exists;
 			}
 
-			// generate surrounding tiles if within boundary
-			Quadrant quad = Quadrant.None;
-			if ((quad = curTile.withinBoundary (t.position, boundarySize)) != Quadrant.None) {
-				Vector2 key = curTile.Coor;
-				Debug.Log ("[Nav] Within boundary, generating three new tiles!");
-				Debug.Log ("[Nav] Current tile coor: " + key.ToString ());
-				switch (quad) {
-				case Quadrant.LowerLeft: 
-					//Debug.Log ("[Nav] \tfor lower left quad.");
-					GenAndAddTile (key, Dir.BottomLeft); 
-					GenAndAddTile (key, Dir.Left); 
-					GenAndAddTile (key, Dir.Bottom);
-					break; 
-				case Quadrant.LowerRight: 
-					//Debug.Log ("[Nav] \tfor lower right quad.");
-					GenAndAddTile (key, Dir.Bottom); 
-					GenAndAddTile (key, Dir.BottomRight);
-					GenAndAddTile (key, Dir.Right);
-					break;
-				case Quadrant.UpperLeft: 
-					//Debug.Log ("[Nav] \tfor upper left quad.");
-					GenAndAddTile (key, Dir.Left); 
-					GenAndAddTile (key, Dir.TopLeft); 
-					GenAndAddTile (key, Dir.Top); 
-					break; 
-				case Quadrant.UpperRight: 
-					//Debug.Log ("[Nav] \tfor upper right quad.");
-					GenAndAddTile (key, Dir.Top); 
-					GenAndAddTile (key, Dir.TopRight); 
-					GenAndAddTile (key, Dir.Right);
-					break;
-				}
+			Debug.Log ("[Nav] [addNeighborTile] adding neighbor for" + orig.ToString ()
+			+ " with direction " + d);	 
+	
+			OceanTile t = __newTile (init);
+			t.AddNeighbor (oppositeDir (d), orig);
+			orig.AddNeighbor (d, t);
+
+			return t;
+		}
+
+		//==============================================
+		// DISPLAY FUNCTIONS 
+
+		// functions with two _'s interacts with gamecomponents
+		private OceanTile __newTile(Vector3 init) {
+			OceanTile t = new OceanTile (init, tileSize, seeder); 
+			Debug.Log ("[Nav] [init] new tile, adding ground"); 
+
+			// always have something to stand on for now 
+			GameObject plane = GameObject.CreatePrimitive (PrimitiveType.Plane); 
+			__transform ("Tile", t, plane);
+
+			if (testTile) {
+				// Debug.Log ("[Nav] [init] in test mode, adding plane with random color");
+				// create a plane instead of the oecan 
+				Color randColor = new Color (Random.value, Random.value, Random.value); 
+				plane.GetComponent<Renderer> ().material.color = randColor;
+			} else {
+				//Debug.Log ("[Nav] Retrieved object from: " + advancedWaterPrefabPath);
+				GameObject ground = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
+				__transform ("Ocean", t, ground);
+
+				// lower the plane a little bit 
+				Vector3 pos = plane.transform.position; 
+				plane.transform.position = new Vector3(pos.x, -0.75f, pos.z);
+				plane.GetComponent<Renderer> ().material.color = Color.clear;
 			}
-			;
+
+			allTiles.Add (init, t); 
+			totalTiles++;
+
+			// display all the islands associated with the tile 
+			foreach (Island i in t.activeIslands) {
+				__newIsland (i);
+			}
+			return t;
+		}
+
+		private Island __newIsland(Island i) {
+			Mesh m = i.DisplayIsland (); 
+			 
+			return i;
+		}
+
+		//==============================================
+		// UTIL
+
+		private void __transform(string name, OceanTile t, GameObject obj) {
+			obj.name = name + " " + totalTiles.ToString ();
+			obj.transform.position = convertToAbsCoords (t.Coor);
+			obj.transform.localScale = t.Scale;
+		}
+
+		private bool isCornerDir (Vector2 v)
+		{ 
+			Dictionary<Dir, Vector2> dv = OceanTile.DirVecs;
+			return v == dv[Dir.TopLeft] ||
+			v == dv[Dir.TopRight] ||
+				v == dv[Dir.BottomLeft] ||
+			v == dv[Dir.BottomRight];
 		}
 
 		// assumes size of tile is constant across all tiles
-		private Vector2 GetTileKey (Vector2 pos)
+		private Vector3 GetTileKey (Vector3 pos)
 		{
-			return new Vector2 (Mathf.Floor (pos.x / tileSize), 
-				Mathf.Floor (pos.y / tileSize));
+			return new Vector3 (Mathf.Floor (pos.x / tileSize) * tileSize, 0f,
+				Mathf.Floor (pos.z / tileSize) * tileSize);
 		}
 
-		private void GenAndAddTile (Vector2 refPos, Dir d)
+		private Vector3 GetNeighborTileKey (Vector3 refPos, Vector2 mult)
 		{
-			Vector2 init = GetNeighborTileKey (refPos, d); 
-			OceanTile t = new OceanTile (init, tileSize, seeder); 
-
-			// link the new tile with its neighbors 
-			curTile.AddNeighbor (d, t);
-			t.AddNeighbor (d, curTile); // todo: fix 
-
-			// add to list of active tiles since it contains an active component 
-			if (!activeTiles.ContainsKey (refPos)) {
-				activeTiles.Add (refPos, t);
-			}
+			return new Vector3 (refPos.x + mult.x * tileSize, 0f,
+				refPos.z + mult.y * tileSize); 
 		}
 
-		private Vector2 GetNeighborTileKey (Vector2 refPos, Dir d)
+		private Vector3 convertToAbsCoords (Vector3 pos)
 		{
-			Vector2 mult = OceanTile.DirVecs [d]; 
-			return new Vector2 (refPos.x + mult.x * tileSize, 
-				refPos.y + mult.y * tileSize); 
+			return new Vector3 (pos.x + tileSize / 2f, pos.y, pos.z + tileSize / 2f);
+
 		}
 
+		private Vector2 oppositeDir (Vector2 vec)
+		{
+			return new Vector2 (vec.x * -1, vec.y * -1); 
+		}
+
+		private Vector2 getDirFromVec(Vector3 pos1, Vector3 pos2) {
+			return new Vector2 ((pos1.x - pos2.x) / tileSize, 
+				(pos1.z - pos2.z) / tileSize);
+		}
 	}
 
 }
