@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MeshLib
 {
-	class MeshUtil
+	public static class MeshUtil
 	{
 		//==============================================
 		// for diamond/square stuff
@@ -88,8 +88,62 @@ namespace MeshLib
 
 		}
 
-	
-		public static int[] GetTriangles (int resolution)
+		// all-in one operation
+		public static Mesh SetMesh (int resolution, Vector3[] vertices, Color[] colors, Vector3[] normals = null, Vector2[] uv = null, Mesh m = null)
+		{
+			if (m == null) {
+				m = new Mesh (); 
+			}
+
+			m.colors = colors;
+			m.vertices = vertices;
+
+			if (normals != null) {
+				m.normals = normals; 
+			} else {
+				Debug.Log ("Recalculating normals.");
+				m.RecalculateNormals (); 
+			}
+			;
+
+			if (uv != null) {
+				Debug.Log ("Resetting uv.");
+				m.uv = uv;
+			}
+
+			m.triangles = getTriangles (resolution);
+			return m;
+		}
+
+
+		public static Mesh NewMesh(int resolution, Mesh m = null) {
+			int numVerts = (resolution + 1) * (resolution + 1);
+
+			Vector3[] verts = new Vector3[numVerts];
+			Vector2[] uv = new Vector2[numVerts];
+			Vector3[] norms = new Vector3[numVerts]; 
+			Color[] colors = new Color[numVerts];
+
+			int v = 0; // vertex enumerator 
+			float u = 1f / resolution;
+			for (int i = 0; i <= resolution; i++) {
+				for (int j = 0; j <= resolution; j++) {
+					verts [v] = new Vector3 (j * u - 0.5f, 0f, i * u - 0.5f); 
+					norms [v] = Vector3.up;
+					colors [v] = Color.clear;
+					uv [v] = new Vector2 (j * u, i * u);
+
+					v++;
+				}
+			}
+
+			Debug.Log ("Expected vertices: " + numVerts.ToString ()); 
+			Debug.Log ("Actual verts: " + v.ToString ());
+			Debug.Log ("Created mesh.");
+			return SetMesh (resolution, verts, colors, norms, uv, m);
+		}
+			
+		private static int[] getTriangles (int resolution)
 		{
 //			Debug.Log ("Resolution: " + resolution.ToString()); 
 

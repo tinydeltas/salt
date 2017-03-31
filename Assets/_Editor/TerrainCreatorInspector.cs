@@ -1,13 +1,13 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(TerrainCreator))]
+[CustomEditor(typeof(TerrainCreatorScript))]
 public class TerrainCreatorInspector : Editor {
 
-	private TerrainCreator creator;
+	private TerrainCreatorScript creator;
 
 	private void OnEnable () {
-		creator = target as TerrainCreator;
+		creator = target as TerrainCreatorScript;
 		Undo.undoRedoPerformed += RefreshCreator;
 	}
 
@@ -17,7 +17,7 @@ public class TerrainCreatorInspector : Editor {
 
 	private void RefreshCreator () {
 		if (Application.isPlaying) {
-			creator.RenderTerrain ();
+			creator.UpdateTerrain ();
 		}
 	}
 

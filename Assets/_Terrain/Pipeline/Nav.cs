@@ -15,9 +15,10 @@ namespace Pipeline
 		// basic options
 		public NeighborType type = NeighborType.vonNeumann;
 		public float tileSize = 10f;
-		public float boundarySize = 0.2f;
 		public bool testTile = false;
-
+		public bool testIsland = true;
+		public float islandDensity = 0.5f;
+	
 		[SerializeField]
 		private static Dictionary<Vector3, OceanTile> activeTiles = null;
 		[SerializeField]
@@ -52,7 +53,7 @@ namespace Pipeline
 		void Start ()
 		{
 			Debug.Log ("[Nav] Initializing");
-			seeder = new Seeder ();
+			seeder = new Seeder (islandDensity);
 			activeTiles = new Dictionary<Vector3, OceanTile> ();
 			allTiles = new Dictionary<Vector3, OceanTile> ();
 
@@ -101,21 +102,20 @@ namespace Pipeline
 
 
 			OceanTile t; 
-			if (curTile != null ) {
+			if (curTile != null) {
 				Vector2 d = getDirFromVec (init, curTile.Coor);
-				if (type == NeighborType.vonNeumann && isCornerDir (d)){
+				if (type == NeighborType.vonNeumann && isCornerDir (d)) {
 					// only make new tile if it's an edge case 
 					t = addNeighborTile (curTile, d);
-				}
-				else {
+				} else {
 					// just try to figure it out using neighbors list
 					//				Vector2 dir = getDirFromVec (refPos, curTile.Coor);
-					Debug.Log("Direction: " + d.ToString());
+					Debug.Log ("Direction: " + d.ToString ());
 					t = curTile.activeNeighbors [d];
 				}
 			} else {
 				// the original! 
-				t = __newTile(init);
+				t = __newTile (init);
 			}
 				
 			// in all cases, officially added to active "explored" tiles list
@@ -125,7 +125,7 @@ namespace Pipeline
 			// add neighbors (some may already be filled in
 			Dir[] dirs = neighborToDir [type];
 			foreach (Dir direction in dirs) {
-				addNeighborTile (t, OceanTile.DirVecs[direction]);
+				addNeighborTile (t, OceanTile.DirVecs [direction]);
 			}
 				
 			Debug.Log ("[Nav] New tile added: " + t.ToString ());
@@ -164,16 +164,17 @@ namespace Pipeline
 		}
 
 		//==============================================
-		// DISPLAY FUNCTIONS 
+		// DISPLAY FUNCTIONS
 
 		// functions with two _'s interacts with gamecomponents
-		private OceanTile __newTile(Vector3 init) {
+		private OceanTile __newTile (Vector3 init)
+		{
 			OceanTile t = new OceanTile (init, tileSize, seeder); 
 			Debug.Log ("[Nav] [init] new tile, adding ground"); 
 
 			// always have something to stand on for now 
 			GameObject plane = GameObject.CreatePrimitive (PrimitiveType.Plane); 
-			__transform ("Tile", t, plane);
+			__transform ("Tile", convertToAbsCoords(t.Coor), t.Scale, plane);
 
 			if (testTile) {
 				// Debug.Log ("[Nav] [init] in test mode, adding plane with random color");
@@ -183,11 +184,11 @@ namespace Pipeline
 			} else {
 				//Debug.Log ("[Nav] Retrieved object from: " + advancedWaterPrefabPath);
 				GameObject ground = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
-				__transform ("Ocean", t, ground);
+				__transform ("Ocean", convertToAbsCoords(t.Coor), t.Scale, ground);
 
 				// lower the plane a little bit 
 				Vector3 pos = plane.transform.position; 
-				plane.transform.position = new Vector3(pos.x, -0.75f, pos.z);
+				plane.transform.position = new Vector3 (pos.x, -0.75f, pos.z);
 				plane.GetComponent<Renderer> ().material.color = Color.clear;
 			}
 
@@ -201,28 +202,46 @@ namespace Pipeline
 			return t;
 		}
 
-		private Island __newIsland(Island i) {
-			Mesh m = i.DisplayIsland (); 
-			 
-			return i;
+		private void __newIsland (Island i)
+		{
+			GameObject obj;
+			if (testIsland) {
+				Debug.Log ("[Nav] Adding new test island");
+				obj = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+				obj.GetComponent<MeshRenderer> ().material = i.material;
+
+//				Color randColor = new Color (Random.value, Random.value, Random.value); 
+//				mesh.GetComponent<Renderer> ().material.color = randColor;
+
+			} else {
+				Debug.Log ("[Nav] Adding new island");
+				Mesh m = i.CreateIsland (); 
+				// create empty game object 
+				obj = new GameObject(); 
+				obj.AddComponent<MeshFilter> ();
+				obj.GetComponent<MeshFilter>().mesh = m;
+			}
+
+			__transform ("island_test" + totalTiles.ToString(), i.Loc, i.Scale, obj); 
 		}
 
 		//==============================================
 		// UTIL
 
-		private void __transform(string name, OceanTile t, GameObject obj) {
+		private void __transform (string name, Vector3 coords, Vector3 scale, GameObject obj)
+		{
 			obj.name = name + " " + totalTiles.ToString ();
-			obj.transform.position = convertToAbsCoords (t.Coor);
-			obj.transform.localScale = t.Scale;
+			obj.transform.position = coords;
+			obj.transform.localScale = scale;
 		}
 
 		private bool isCornerDir (Vector2 v)
 		{ 
 			Dictionary<Dir, Vector2> dv = OceanTile.DirVecs;
-			return v == dv[Dir.TopLeft] ||
-			v == dv[Dir.TopRight] ||
-				v == dv[Dir.BottomLeft] ||
-			v == dv[Dir.BottomRight];
+			return v == dv [Dir.TopLeft] ||
+			v == dv [Dir.TopRight] ||
+			v == dv [Dir.BottomLeft] ||
+			v == dv [Dir.BottomRight];
 		}
 
 		// assumes size of tile is constant across all tiles
@@ -249,7 +268,8 @@ namespace Pipeline
 			return new Vector2 (vec.x * -1, vec.y * -1); 
 		}
 
-		private Vector2 getDirFromVec(Vector3 pos1, Vector3 pos2) {
+		private Vector2 getDirFromVec (Vector3 pos1, Vector3 pos2)
+		{
 			return new Vector2 ((pos1.x - pos2.x) / tileSize, 
 				(pos1.z - pos2.z) / tileSize);
 		}

@@ -1,20 +1,21 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Terrain/Pipeline/Nav.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Lib/Terrain/TerrainCreator.cs">
     <Files>
-      <File FileName="Assets/_Terrain/Pipeline/Island.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Terrain/Pipeline/Nav.cs" Line="176" Column="20" />
+      <File FileName="Assets/_Terrain/Pipeline/Seeder.cs" Line="29" Column="24" />
       <File FileName="Assets/_Terrain/Pipeline/Opt.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Terrain/TerrainCreatorWorker.cs" Line="1" Column="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Nav.cs" Line="225" Column="57" />
       <File FileName="Assets/_Lib/Mesh/Mask.cs" Line="1" Column="1" />
       <File FileName="Assets/_Lib/Textures/CellularTemplate.cs" Line="1" Column="1" />
       <File FileName="Assets/_Lib/Textures/SolidTextureTemplate.cs" Line="1" Column="1" />
       <File FileName="Assets/_Materials/MaterialController.cs" Line="1" Column="1" />
-      <File FileName="Assets/_Terrain/TerrainCreator.cs" Line="95" Column="22" NotebookId="1" />
+      <File FileName="Assets/_Terrain/TerrainCreatorScript.cs" Line="134" Column="19" NotebookId="1" />
       <File FileName="Assets/_Terrain/Pipeline/Constants.cs" Line="1" Column="1" NotebookId="1" />
-      <File FileName="Assets/_Terrain/Pipeline/Seeder.cs" Line="1" Column="1" NotebookId="1" />
-      <File FileName="Assets/_Terrain/Pipeline/Mesh.cs" Line="1" Column="1" NotebookId="1" />
-      <File FileName="Assets/_Terrain/Pipeline/Tile.cs" Line="50" Column="31" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Tile.cs" Line="1" Column="1" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Island.cs" Line="14" Column="26" NotebookId="1" />
+      <File FileName="Assets/_Lib/Terrain/TerrainCreator.cs" Line="37" Column="43" NotebookId="1" />
+      <File FileName="Assets/_Lib/Mesh/MeshUtil.cs" Line="7" Column="16" NotebookId="1" />
+      <File FileName="Assets/_Editor/TerrainCreatorInspector.cs" Line="20" Column="13" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

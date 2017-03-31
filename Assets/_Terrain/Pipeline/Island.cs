@@ -4,27 +4,23 @@ using UnityEngine;
 using MeshLib;
 using NoiseLib;
 using MaterialLib;
+using TerrainLib;
 using Util;
 
 namespace Pipeline
 {
-	public class Island 
+	public class Island
 	{
-		private Mesh[] islandMesh = null;
+		private Mesh islandMesh = null;
 
 		// constants
 		public static float[] defRatio = new float[]{ 0.3f, 0, 0.7f };
 
 		[Header ("Island opts")]
-		public int avgSize = 10;
-		public int avgHeight = 50;
-
-		// use a flat plane instead of generating the mesh.
-		public bool useDummy = true;
+		public float avgSize = 2f;
+		public float avgHeight = 1f;
 
 		// USED FOR TESTING; public for now
-		[SerializeField]
-		private Material material;
 		[SerializeField]
 		private MaskMethod mask;
 		[SerializeField]
@@ -34,66 +30,64 @@ namespace Pipeline
 		// constructor
 
 		// creates a random island given a few parameters
-		public Island (Vector2 init, 
-		              Material mat = null, 
-		              MeshLib.Mask m = null, 
-		              float[] ratios = null)
+		public Island (Vector3 init, 
+		               Material mat = null, 
+		               MeshLib.MaskMethod m = null, 
+		               float[] ratios = null)
 		{
-
 			if (mat == null)
-				material = MaterialController.GenRandom (); 
+				mat = new Material (Shader.Find ("Diffuse"));
 			if (m == null)
-				mask = Mask.GenRandom ();  // random mask 
+				m = MeshLib.Mask.RoundTransform; 
 			if (ratios == null)
-				noiseRatios = defRatio; 
+				ratios = defRatio;
+			
+			material = mat; 
+			mask = m; 
+			noiseRatios = ratios;
 
-			// initialize size based on gaussian distribution
+			// initialize size based on gaussian distributionj
 			Loc = init;
 			Scale = new Vector3 (
 				GetIslandDimensions (avgSize), 
-				GetIslandDimensions (avgSize), 
-				GetIslandDimensions (avgHeight)
+				GetIslandDimensions (avgHeight),
+				GetIslandDimensions (avgSize) 
 			);
+
+			Debug.Log (this.ToString ());
+
 		}
 
-		private float GetIslandDimensions (int size)
+		private float GetIslandDimensions (float size)
 		{
-			return size * Math.Gaussian () * size;
+			return Mathf.Abs (size * Math.Gaussian ());
 		}
 
 		//==============================================
 		// getter/setters
 		// center, absolute coordinates on world map
-		public Vector2 Loc { get; private set; }
+		[SerializeField]
+		public Vector3 Loc { get; private set; }
 
 		// used for scaling mesh
+		[SerializeField]
 		public Vector3 Scale { get; private set; }
+
+		[SerializeField]
+		public Material material { get; private set; }
 
 		//==============================================
 		// island interfacing operations
 
-		public void CreateIsland ()
+		public Mesh CreateIsland ()
 		{
+			islandMesh = new Mesh ();
+
 			// create a mesh out of these params (deterministic) 
 
+			return islandMesh;
 		}
 
-		public void DisplayIsland ()
-		{
-			// display the mesh 
-			if (islandMesh == null && !useDummy) {
-				Debug.Log ("Could not display, need island."); 
-				return;
-			}
-
-			// transform to the appropriate size.
-			// todo: use blocks. 
-
-			if (useDummy) {
-				// disable mesh component;  
-			} else {
-			}
-		}
 
 		public void HideIsland ()
 		{
@@ -104,6 +98,19 @@ namespace Pipeline
 		{
 			// delete this mesh (for memory optimization)  
 			islandMesh = null;
+		}
+
+
+		//==============================================
+		// UTIL
+
+		override
+		public string ToString ()
+		{
+
+			return "[Loc]: " + this.Loc.ToString () +
+			"\n[Scale]: " + this.Scale.ToString ()
+			+ "\n[avgHeight]: " + this.avgHeight.ToString () + "\t[avgSize]: " + this.avgSize.ToString ();
 		}
 	}
 

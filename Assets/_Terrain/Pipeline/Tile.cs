@@ -32,7 +32,7 @@ namespace Pipeline
 		public OceanTile (Vector3 init, float size, Seeder s)
 		{
 			Debug.Log ("[Tile] Initializing");
-//			Debug.Log ("[Tile] ID: " + id.ToString ()); 
+			Debug.Log ("[Tile] Loc: " + init.ToString ());
 
 			Coor = init;
 			Size = size;
@@ -42,24 +42,13 @@ namespace Pipeline
 			activeIslands = new LinkedList<Island> (); 
 
 			// initialize islands 
-			LinkedList<Vector2> islePos = s.Seed (Coor, size);
-			foreach (Vector2 pos in islePos) {
-				activeIslands.AddFirst (new Island (AdjustPos (pos)));  
+			LinkedList<Vector3> islePos = s.Seed (Coor, Size);
+			foreach (Vector3 p in islePos) {
+				Debug.Log ("[Tile] received isle pos: " + p.ToString ());
+				activeIslands.AddFirst (new Island (p));  
 			}
-
-//			Debug.Log ("[Tile] Islands created: " + islePos.ToString());
 		}
-
-		private Vector2 AdjustPos (Vector2 islePos)
-		{
-			Vector2 absVec = new Vector2 (
-				                Coor.x + Size * islePos.x, 
-				                Coor.y + Size * islePos.y
-			                );
-
-			return absVec;
-		}
-
+			
 		//==============================================
 		//getter/setter functions
 

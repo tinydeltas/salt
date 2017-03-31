@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class Seeder
 {
-	static float threshold = 0.5f;
+	public LinkedList<Vector3> init;
 
-	public Seeder (float d = 0.3f)
+	public Seeder (float d = 0.6f)
 	{
 		Density = d;
+		init = new LinkedList<Vector3> ();
 
 		// calculate threshold based on the desired density
 		// todo
@@ -22,13 +23,12 @@ public class Seeder
 
 	// seed potential island centers given the tile location.
 	// return the island's coordinates in the form of a vector, or null if seeding fails.
-	public LinkedList<Vector2> Seed (Vector2 pos, float range)
+	public LinkedList<Vector3> Seed (Vector3 pos, float range)
 	{
-		Vector2 randPos = pos;
-		LinkedList<Vector2> seeds = new LinkedList<Vector2> (); 
-		while (randPos == pos || Mathf.PerlinNoise (randPos.x, randPos.y) > threshold) {
-			randPos.x = pos.x + Random.Range(0, range); 
-			randPos.y = pos.y + Random.Range(0, range); 
+		Vector3 randPos = pos;
+		LinkedList<Vector3> seeds = new LinkedList<Vector3> (); 
+		while (Mathf.PerlinNoise (randPos.x, randPos.z) > (1f - Density)) { 
+			Debug.Log ("[Seeder] New loc; " + randPos.ToString ());
 			seeds.AddLast(randPos);
 		} 
 		return seeds;	
