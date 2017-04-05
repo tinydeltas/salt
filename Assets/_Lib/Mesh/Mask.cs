@@ -26,7 +26,7 @@ namespace MeshLib
 			return RoundTransform;
 		}
 
-		public static float Transform(Vector3 p, float noise, float size, MaskMethod m) {
+		public static float Transform(Vector3 p, float noise,MaskMethod m, float size = 1f) {
 			float distance = m(p, size);
 
 			float max_width = size * 0.5f;

@@ -9,83 +9,49 @@ using Util;
 
 namespace Pipeline
 {
-	public class Island
+	public class Island : GenericTerrain
 	{
-		private Mesh islandMesh = null;
-
-		// constants
-		public static float[] defRatio = new float[]{ 0.3f, 0, 0.7f };
-
-		[Header ("Island opts")]
-		public float avgSize = 2f;
-		public float avgHeight = 1f;
 
 		// USED FOR TESTING; public for now
 		[SerializeField]
-		private MaskMethod mask;
-		[SerializeField]
-		private float[] noiseRatios;
+		public MaskMethod Mask;
+
+		private static float islandLevel= -0.1f;
+
 
 		//==============================================
 		// constructor
 
 		// creates a random island given a few parameters
 		public Island (Vector3 init, 
-		               Material mat = null, 
-		               MeshLib.MaskMethod m = null, 
-		               float[] ratios = null)
+		               Material mat = null,  
+		               float[] ratios = null, 
+					   MeshLib.MaskMethod m = null)
+			: base (init, mat, ratios)
+
 		{
-			if (mat == null)
-				mat = new Material (Shader.Find ("Diffuse"));
+
+
+			Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
+
 			if (m == null)
-				m = MeshLib.Mask.RoundTransform; 
-			if (ratios == null)
-				ratios = defRatio;
-			
-			material = mat; 
-			mask = m; 
-			noiseRatios = ratios;
-
-			// initialize size based on gaussian distributionj
-			Loc = init;
-			Scale = new Vector3 (
-				GetIslandDimensions (avgSize), 
-				GetIslandDimensions (avgHeight),
-				GetIslandDimensions (avgSize) 
-			);
-
+				Mask = MeshLib.Mask.RadialTransform;
+	
 			Debug.Log (this.ToString ());
-
 		}
-
-		private float GetIslandDimensions (float size)
-		{
-			return Mathf.Abs (size * Math.Gaussian ());
-		}
-
-		//==============================================
-		// getter/setters
-		// center, absolute coordinates on world map
-		[SerializeField]
-		public Vector3 Loc { get; private set; }
-
-		// used for scaling mesh
-		[SerializeField]
-		public Vector3 Scale { get; private set; }
-
-		[SerializeField]
-		public Material material { get; private set; }
 
 		//==============================================
 		// island interfacing operations
 
-		public Mesh CreateIsland ()
+		public Mesh CreateAndDisplayIsland ()
 		{
-			islandMesh = new Mesh ();
-
+			Debug.Log ("[Island] About to create Island");
+			newTerrain (); 
 			// create a mesh out of these params (deterministic) 
-
-			return islandMesh;
+		
+			Debug.Log ("[Island] About to render Island");
+			renderTerrain(Mask); 
+			return this.Mesh; 
 		}
 
 
@@ -96,22 +62,14 @@ namespace Pipeline
 
 		public void DestroyIsland ()
 		{
-			// delete this mesh (for memory optimization)  
-			islandMesh = null;
+			this.destroyTerrain (); 
 		}
 
 
 		//==============================================
 		// UTIL
 
-		override
-		public string ToString ()
-		{
 
-			return "[Loc]: " + this.Loc.ToString () +
-			"\n[Scale]: " + this.Scale.ToString ()
-			+ "\n[avgHeight]: " + this.avgHeight.ToString () + "\t[avgSize]: " + this.avgSize.ToString ();
-		}
 	}
 
 }

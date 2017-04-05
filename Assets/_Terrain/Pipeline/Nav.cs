@@ -16,8 +16,8 @@ namespace Pipeline
 		public NeighborType type = NeighborType.vonNeumann;
 		public float tileSize = 10f;
 		public bool testTile = false;
-		public bool testIsland = true;
-		public float islandDensity = 0.5f;
+		public bool testIsland = false;
+		public float islandDensity = 0.9f;
 	
 		[SerializeField]
 		private static Dictionary<Vector3, OceanTile> activeTiles = null;
@@ -137,8 +137,6 @@ namespace Pipeline
 		{
 			// get prospective key 
 			Vector3 init = GetNeighborTileKey (orig.Coor, d);
-			Vector2 o = oppositeDir (d);
-
 			Debug.Log ("[Nav] \t initVec: " + init.ToString ());
 
 			if (curTile != null && curTile.Coor == init) {
@@ -188,8 +186,9 @@ namespace Pipeline
 
 				// lower the plane a little bit 
 				Vector3 pos = plane.transform.position; 
-				plane.transform.position = new Vector3 (pos.x, -0.75f, pos.z);
-				plane.GetComponent<Renderer> ().material.color = Color.clear;
+				plane.transform.position = new Vector3 (pos.x, -1f, pos.z);
+			
+				plane.GetComponent<Renderer> ().material.color = Color.white;
 			}
 
 			allTiles.Add (init, t); 
@@ -208,20 +207,24 @@ namespace Pipeline
 			if (testIsland) {
 				Debug.Log ("[Nav] Adding new test island");
 				obj = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-				obj.GetComponent<MeshRenderer> ().material = i.material;
-
-//				Color randColor = new Color (Random.value, Random.value, Random.value); 
-//				mesh.GetComponent<Renderer> ().material.color = randColor;
-
 			} else {
 				Debug.Log ("[Nav] Adding new island");
-				Mesh m = i.CreateIsland (); 
+				Mesh m = i.CreateAndDisplayIsland (); 
 				// create empty game object 
+//				obj = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+
 				obj = new GameObject(); 
-				obj.AddComponent<MeshFilter> ();
+				obj.AddComponent<MeshCollider> (); 
+				obj.AddComponent<MeshFilter> (); 
+
+				obj.GetComponent<MeshCollider> ().sharedMesh = m;
 				obj.GetComponent<MeshFilter>().mesh = m;
+
+				obj.AddComponent<MeshRenderer> ();
+
 			}
 
+			obj.GetComponent<MeshRenderer> ().material = i.material;
 			__transform ("island_test" + totalTiles.ToString(), i.Loc, i.Scale, obj); 
 		}
 

@@ -1,8 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 using MeshLib;
 using NoiseLib;
+using TerrainLib;
+using Pipeline;
 
 // Controls basically everything
 public class TerrainCreatorScript : MonoBehaviour
@@ -14,13 +17,11 @@ public class TerrainCreatorScript : MonoBehaviour
 
 	public float island_level = -1;
 
-	[Range(1, 10)]
+	[Range (1, 10)]
 	public int num_blocks = 1;
 
-	[Range(1, 10)] 
+	[Range (1, 10)] 
 	public int num_workers = 1;
-
-	public bool island_mode = true;
 
 	// -------------------------------------
 	[Header ("noise options")]
@@ -50,10 +51,10 @@ public class TerrainCreatorScript : MonoBehaviour
 	[HideInInspector]
 	public float[] ratios;
 
-	public bool use_diamond_square = false;
-
-	[Range (0f, 1f)]
-	public static float diamond_ratio = 0.25f;
+//	public bool use_diamond_square = false;
+//
+//	[Range (0f, 1f)]
+//	public static float diamond_ratio = 0.25f;
 
 	// -------------------------------------
 	[Header ("island shape opts")]
@@ -61,9 +62,6 @@ public class TerrainCreatorScript : MonoBehaviour
 	public bool mask_island = true;
 
 	public MeshLib.MaskTypes mask_type;
-
-	[Range (0f, 1f)]
-	public float island_size = 0.5f;
 
 	// -------------------------------------
 	[Header ("texture / aesthetic opts")]
@@ -74,39 +72,30 @@ public class TerrainCreatorScript : MonoBehaviour
 
 	[ContextMenuItem ("Random configuration!", "genRandom")]
 
-	public int num_tiles = 1;
-
 	// -------------------------------------
 	// Private variables
 	private int curRes = -1;
-	private int curScale;
-	private Mesh m = null;
 
-	private Vector3[] verts;
-	private Vector3[] norms;
-	private Color[] colors;
+	private GenericTerrain t;
 
 	void genRandom ()
 	{
 		//todo 
 	}
 
-	// initialize terrain 
+	// initialize terrain
 	private void init ()
 	{
-		if (m == null) {
-			m = new Mesh (); 
-			m.name = "Test mesh more"; 
-			GetComponent<MeshFilter> ().mesh = m;
-			Debug.Log ("Assigned mesh");
+		if (t == null) {
+			t = new GenericTerrain (GetComponent<Transform> ().position); 
 		} 
 	}
 
 	private void updateParams ()
 	{
 		if (resolution != curRes) {
-			m.Clear (); 
-			GetComponent<MeshFilter>().mesh = MeshUtil.NewMesh (resolution, m);
+			t.newTerrain (resolution); 
+			GetComponent<MeshFilter> ().mesh = t.Mesh;
 			curRes = resolution; 
 		} 
 
@@ -118,27 +107,36 @@ public class TerrainCreatorScript : MonoBehaviour
 
 		Vector3 pos = GetComponent<Transform> ().position; 
 		pos.y = island_level;
+	
+		t.resolution = resolution; 
+		t.noiseRatios = ratios;
+//		t.Coloring = coloring;
+
+		//todo: update persistence, size, etc 
 	}
 
 	// every time this component is enabled
 	void onEnable ()
 	{
+		Debug.Log ("in onEnable");
 		UpdateTerrain ();
 	}
 
-	public void UpdateTerrain() {
+	public void UpdateTerrain ()
+	{
 		init ();
 		updateParams (); 
 
-		m = renderTerrain (); 
-		MeshUtil.SetMesh (m, verts, colors); 
-		transform.GetComponent<MeshCollider> ().sharedMesh = m;
+		// do the thing 
+		Debug.Log("[TerrainCreatorScript] About to render Terrain.");
+
+		MaskMethod mask = null; 
+		if (mask_island) 
+			mask = Mask.MaskMethods [(int)mask_type];
+		
+		t.renderTerrain (mask, coloring); 
+
+		transform.GetComponent<MeshCollider> ().sharedMesh = t.Mesh;
 		Debug.Log ("Set shared mesh");
-	}
-
-	// creates new mesh (w triangles, etc) given the new resolution
-	private void createNewMesh (int resolution)
-	{
-
 	}
 }

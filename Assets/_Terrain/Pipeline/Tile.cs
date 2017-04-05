@@ -36,7 +36,7 @@ namespace Pipeline
 
 			Coor = init;
 			Size = size;
-			Scale = new Vector3 (size/10, 1f, size/10);
+			Scale = new Vector3 (size/10, 0.1f, size/10);
 
 			activeNeighbors = new Dictionary<Vector2, OceanTile> ();
 			activeIslands = new LinkedList<Island> (); 

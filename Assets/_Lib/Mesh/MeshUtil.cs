@@ -88,36 +88,13 @@ namespace MeshLib
 
 		}
 
-		// all-in one operation
-		public static Mesh SetMesh (int resolution, Vector3[] vertices, Color[] colors, Vector3[] normals = null, Vector2[] uv = null, Mesh m = null)
-		{
-			if (m == null) {
-				m = new Mesh (); 
-			}
-
-			m.colors = colors;
-			m.vertices = vertices;
-
-			if (normals != null) {
-				m.normals = normals; 
-			} else {
-				Debug.Log ("Recalculating normals.");
-				m.RecalculateNormals (); 
-			}
-			;
-
-			if (uv != null) {
-				Debug.Log ("Resetting uv.");
-				m.uv = uv;
-			}
-
-			m.triangles = getTriangles (resolution);
-			return m;
-		}
-
-
 		public static Mesh NewMesh(int resolution, Mesh m = null) {
+			Debug.Log ("[MeshUtil] creating new Mesh");
+
 			int numVerts = (resolution + 1) * (resolution + 1);
+
+			if (m == null)
+				m = new Mesh (); 
 
 			Vector3[] verts = new Vector3[numVerts];
 			Vector2[] uv = new Vector2[numVerts];
@@ -140,10 +117,17 @@ namespace MeshLib
 			Debug.Log ("Expected vertices: " + numVerts.ToString ()); 
 			Debug.Log ("Actual verts: " + v.ToString ());
 			Debug.Log ("Created mesh.");
-			return SetMesh (resolution, verts, colors, norms, uv, m);
+
+			m.vertices = verts; 
+			m.colors = colors;
+			m.uv = uv;
+			m.normals = norms;
+			m.triangles = getTriangles (resolution);
+
+			return m;
 		}
 			
-		private static int[] getTriangles (int resolution)
+		public static int[] getTriangles (int resolution)
 		{
 //			Debug.Log ("Resolution: " + resolution.ToString()); 
 
@@ -153,7 +137,7 @@ namespace MeshLib
 			int t = 0; // counter for triangles
 			for (int i = 0, v = 0; i < resolution; i++, v++) {
 				for (int j = 0; j < resolution; j++, v++) {
-					// assign two triangles
+					
 					quads [t] = v; 
 					quads [t + 1] = v + resolution + 1; 
 					quads [t + 4] = v + resolution + 1;
@@ -163,10 +147,7 @@ namespace MeshLib
 					t += 6; 
 				}
 			}
-
-//			Debug.Log ("Num quads expected: " + numQuads.ToString());
-//			Debug.Log ("Num quads assigned: " + (t / 6f).ToString());
-	
+				
 
 			return quads;
 		}
