@@ -10,28 +10,26 @@ namespace TerrainLib
 {
 	public class GenericTerrain
 	{
-
-		private float avgSize = 5f;
-		private float avgHeight = 5f;
 		private float factor = 20f;
 
-		private static float[] defRatio = new float[]{ 1.0f, 0.1f, 0f };
+		private static float[] defRatio = new float[]{ 0.8f, 0.5f, 0f };
 		private float noiseRange = 0.1f;
 		public float[] noiseRatios;
 
-		public int resolution = 32;
+		public int resolution = 128;
 
-		public int octaves = 4;
+		public int octaves = 5;
 		public float frequency = 3f;
 		public float lacunarity = 2f;
 		public float persistence = 0.4f;
 
 		public static Color[] defaultColors = new Color[]{
 
-			Color.black, Color.blue, Color.gray, Color.white
+			Color.black, Color.blue, Color.gray, Color.white, Color.cyan, Color.yellow
 		};
 
-		public GenericTerrain (Vector3 init, 
+		public GenericTerrain (Vector3 init,
+								Vector3 scale, 
 		                       Material mat = null, 
 		                       float[] ratios = null)
 		{
@@ -46,9 +44,9 @@ namespace TerrainLib
 
 			Loc = init;
 			Scale = new Vector3 (
-				avgSize + GetDimensions (avgSize/factor), 
-				avgHeight + GetDimensions (avgHeight/factor),
-				avgSize + GetDimensions (avgSize/factor) 
+				scale.x + GetDimensions (scale.x/factor), 
+				scale.y + GetDimensions (scale.y/factor),
+				scale.z + GetDimensions (scale.z/factor) 
 			);
 
 			Coloring = randomGradient ();
@@ -65,20 +63,15 @@ namespace TerrainLib
 			Gradient g = new Gradient (); 
 			g.mode = GradientMode.Blend;
 
-			int n = Random.Range (3, 7); 
+			int n = Random.Range (6, 8); 
 //			int n = 3;
 
 			GradientColorKey[] keys = new GradientColorKey[n]; 
 			GradientAlphaKey[] alpha = new GradientAlphaKey[n];
 //
 			for (int i = 0; i < n; i++) {
-				if (i % 2 == 0) {
-					keys [i].color = defaultColors [Random.Range (0, defaultColors.Length)];
-				} else {
-					keys [i].color = Color.green;
-
-				}
-				float loc = (i + 1)/n;
+				keys [i].color = defaultColors [Random.Range (0, defaultColors.Length)];
+				float loc = i/n;
 
 				keys [i].time = loc;
 				alpha [i].alpha = 1f; 
@@ -86,6 +79,7 @@ namespace TerrainLib
 			}
 
 			g.SetKeys (keys, alpha);
+			Debug.Log ("COLORS: " + g.ToString ());
 			return g;
 		}
 
@@ -124,12 +118,10 @@ namespace TerrainLib
 
 			// extract parameters 
 			IHeightMappable<Vector2>[] cls = NoiseLib.Constants.MappableClasses;
-		
 			float dx = 1f / resolution;
 
-
 			if (coloring == null) {
-				Debug.Log ("Using default color");
+//				Debug.Log ("Using default color");
 				coloring = Coloring;
 			}
 
@@ -142,7 +134,6 @@ namespace TerrainLib
 			int v = 0; 
 
 			noiseRatios = new float[defRatio.Length]; 
-
 			for(int i = 0; i < defRatio.Length; i++) {
 				noiseRatios[i] = Mathf.Min(1f, defRatio[i] + GetDimensions(noiseRange));
 			}
@@ -154,45 +145,39 @@ namespace TerrainLib
 				for (int j = 0; j <= resolution; j++) {
 					Vector3 p = Vector3.Lerp (p0, p1, j * dx);
 
-//					p = new Vector3 (p.x + Loc.x, p.y + Loc.z);
-
-					float height = genNoise (cls, p);
-
+					Vector3 n = new Vector3 (p.x + Loc.x, p.y + Loc.z);
+					float height = genNoise (cls, n);
+//
+//					if (Random.Range(0, 50) == 40) {
+//						Debug.Log ("Point: " + p.ToString ());
+//						Debug.Log ("Loc: " + Loc.ToString ());
+//						Debug.Log ("Height" + height.ToString ());
+//						Debug.Log ("Modified: " + modified.ToString ());
+//						Debug.Log ("Color: " + newColor.ToString ());
+//					}
+//
+//					if (height > maxHeight)
+//						maxHeight = height; 
+//					if (height < minHeight)
+//						minHeight = height; 
+//					
 					float modified = Mathf.Min(height + 0.5f, 1f);
-					Color newColor = coloring.Evaluate (modified);
-					colors [v] = newColor;
-
-					if (Random.Range(0, 50) == 40) {
-						Debug.Log (p.ToString ());
-						Debug.Log ("Loc: " + Loc.ToString ());
-						Debug.Log ("Height" + height.ToString ());
-						Debug.Log ("Modified: " + modified.ToString ());
-						Debug.Log ("Color: " + newColor.ToString ());
-					}
-
-
-					if (height > maxHeight)
-						maxHeight = height; 
-					if (height < minHeight)
-						minHeight = height; 
-					
-
 					// THEN apply the mask
 					if (mask != null) {
 						height = MeshLib.Mask.Transform (p, height, mask);
-					} else {
-						Debug.Log ("No mask");
+					} 
+						
+					Color newColor = coloring.Evaluate (modified);
 
-					}
-
+					colors [v] = newColor;
 					vertices [v].y = height;
 					v++;
 				}
 			}
-			Debug.Log ("Min height: " + minHeight.ToString ()); 
-			Debug.Log ("Max height: " + maxHeight.ToString ());
-			Debug.Log ("Difference: " + (maxHeight - minHeight).ToString ());
-			Debug.Log ("[GenericTerrain][renderTerrain] about to set Mesh and generate triangles!");
+//			Debug.Log ("Min height: " + minHeight.ToString ()); 
+//			Debug.Log ("Max height: " + maxHeight.ToString ());
+//			Debug.Log ("Difference: " + (maxHeight - minHeight).ToString ());
+//			Debug.Log ("[GenericTerrain][renderTerrain] about to set Mesh and generate triangles!");
 	
 			this.Mesh.vertices = vertices;
 			this.Mesh.colors = colors;
@@ -259,7 +244,7 @@ namespace TerrainLib
 
 			return "[Loc]: " + this.Loc.ToString () +
 				"\n[Scale]: " + this.Scale.ToString ()
-				+ "\n[avgHeight]: " + this.avgHeight.ToString () + "\t[avgSize]: " + this.avgSize.ToString ();
+				+ "\n[avgHeight]: " + this.Scale.y.ToString () + "\t[avgSize]: " + this.Scale.x.ToString ();
 		}
 
 	}

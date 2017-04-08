@@ -16,7 +16,7 @@ namespace Pipeline
 		[SerializeField]
 		public MaskMethod Mask;
 
-		private static float islandLevel= -0.1f;
+		private static float islandLevel= -1f;
 
 
 		//==============================================
@@ -24,18 +24,17 @@ namespace Pipeline
 
 		// creates a random island given a few parameters
 		public Island (Vector3 init, 
+					 	Vector3 scale, 
 		               Material mat = null,  
 		               float[] ratios = null, 
 					   MeshLib.MaskMethod m = null)
-			: base (init, mat, ratios)
+			: base (init, scale, mat, ratios)
 
 		{
-
-
 			Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
 
 			if (m == null)
-				Mask = MeshLib.Mask.RadialTransform;
+				Mask = MeshLib.Mask.SquareTransform;
 	
 			Debug.Log (this.ToString ());
 		}

@@ -14,10 +14,20 @@ namespace Pipeline
 		
 		// basic options
 		public NeighborType type = NeighborType.vonNeumann;
-		public float tileSize = 10f;
+
+		[Range (10, 100)] 
+		public float tileSize = 50f;
 		public bool testTile = false;
 		public bool testIsland = false;
-		public float islandDensity = 0.9f;
+
+		[Range(0.3f, 0.7f)]
+		public float islandDensity = 0.3f;
+
+		[Range (1, 100)]
+		public float islandSize = 80f;
+
+		[Range (1, 100)]
+		public float islandHeight = 50f;
 	
 		[SerializeField]
 		private static Dictionary<Vector3, OceanTile> activeTiles = null;
@@ -48,25 +58,27 @@ namespace Pipeline
 			};
 
 		private Seeder seeder;
+		private Vector3 scale;
 
 		// Use this for initialization
-		void Start ()
+		void OnEnable ()
 		{
 			Debug.Log ("[Nav] Initializing");
 			seeder = new Seeder (islandDensity);
 			activeTiles = new Dictionary<Vector3, OceanTile> ();
 			allTiles = new Dictionary<Vector3, OceanTile> ();
 
-			// start player at origin 
-			Transform t = GetComponent<Transform> (); 
-			t.position = new Vector3 (0.5f, 0, 0.5f);
-
 			// allocate initial tile
 			Debug.Log ("[Nav] Adding initial tile");
+
+			Transform t = GetComponent<Transform> (); 
 
 			// this will introduce an exception and make the first tile set at (0, 0)
 			OceanTile firstTile = addUnexploredTile (GetTileKey (t.position));
 			curTile = firstTile;
+
+			scale = new Vector3 (islandSize, islandHeight, islandSize);
+
 		}
 	
 		// Update is called once per frame
@@ -76,7 +88,7 @@ namespace Pipeline
 			// update current tile if needed and display its neighborhood
 			if (curTile == null || !curTile.inTile (position)) {
 				Vector3 key = GetTileKey (position);
-
+//				Debug.Log ("[Nav] " + position.ToString ());
 				Debug.Log ("[Nav] [update] In new tile, updating curTile with key: " + key);
 			
 				// get the new tile 
@@ -104,6 +116,7 @@ namespace Pipeline
 			OceanTile t; 
 			if (curTile != null) {
 				Vector2 d = getDirFromVec (init, curTile.Coor);
+//				Debug.Log ("[Nav] " + d.ToString ());
 				if (type == NeighborType.vonNeumann && isCornerDir (d)) {
 					// only make new tile if it's an edge case 
 					t = addNeighborTile (curTile, d);
@@ -167,7 +180,7 @@ namespace Pipeline
 		// functions with two _'s interacts with gamecomponents
 		private OceanTile __newTile (Vector3 init)
 		{
-			OceanTile t = new OceanTile (init, tileSize, seeder); 
+			OceanTile t = new OceanTile (init, scale, tileSize, seeder); 
 			Debug.Log ("[Nav] [init] new tile, adding ground"); 
 
 			// always have something to stand on for now 
@@ -182,26 +195,36 @@ namespace Pipeline
 			} else {
 				//Debug.Log ("[Nav] Retrieved object from: " + advancedWaterPrefabPath);
 				GameObject ground = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
-				__transform ("Ocean", convertToAbsCoords(t.Coor), t.Scale, ground);
+
+				Vector3 scale = new Vector3 (tileSize / 100f, 0.1f, tileSize / 100f);
+				__transform ("Ocean", convertToAbsCoords(t.Coor), scale, ground);
 
 				// lower the plane a little bit 
 				Vector3 pos = plane.transform.position; 
 				plane.transform.position = new Vector3 (pos.x, -1f, pos.z);
-			
-				plane.GetComponent<Renderer> ().material.color = Color.white;
+//				plane.GetComponent<Renderer> ().material.color = Color.white;
+
+				// set the ocean tile as child to keep the inspector clean
+				ground.GetComponent<Transform>().transform.parent = plane.transform;
 			}
 
 			allTiles.Add (init, t); 
 			totalTiles++;
 
 			// display all the islands associated with the tile 
+			GameObject island;
+		
 			foreach (Island i in t.activeIslands) {
-				__newIsland (i);
+				island = __newIsland (i);
+
+				// make the parent of tile gameobject
+				island.GetComponent<Transform> ().transform.parent = plane.transform;
+
 			}
 			return t;
 		}
 
-		private void __newIsland (Island i)
+		private GameObject __newIsland (Island i)
 		{
 			GameObject obj;
 			if (testIsland) {
@@ -221,11 +244,11 @@ namespace Pipeline
 				obj.GetComponent<MeshFilter>().mesh = m;
 
 				obj.AddComponent<MeshRenderer> ();
-
 			}
 
 			obj.GetComponent<MeshRenderer> ().material = i.material;
-			__transform ("island_test" + totalTiles.ToString(), i.Loc, i.Scale, obj); 
+			__transform ("island", i.Loc, i.Scale, obj); 
+			return obj;
 		}
 
 		//==============================================

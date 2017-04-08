@@ -29,7 +29,7 @@ namespace Pipeline
 		private System.Guid id = System.Guid.NewGuid(); 
 
 		// initialize a new tile, which controls the islands and stuff
-		public OceanTile (Vector3 init, float size, Seeder s)
+		public OceanTile (Vector3 init, Vector3 islandScale, float size, Seeder s)
 		{
 			Debug.Log ("[Tile] Initializing");
 			Debug.Log ("[Tile] Loc: " + init.ToString ());
@@ -45,7 +45,7 @@ namespace Pipeline
 			LinkedList<Vector3> islePos = s.Seed (Coor, Size);
 			foreach (Vector3 p in islePos) {
 				Debug.Log ("[Tile] received isle pos: " + p.ToString ());
-				activeIslands.AddFirst (new Island (p));  
+				activeIslands.AddFirst (new Island (p, islandScale));  
 			}
 		}
 			

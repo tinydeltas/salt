@@ -17,6 +17,14 @@ public class TerrainCreatorScript : MonoBehaviour
 
 	public float island_level = -1;
 
+
+	[Range (1, 100)]
+	public float islandSize = 50f;
+
+	[Range (1, 100)]
+	public float islandHeight = 30f;
+
+
 	[Range (1, 10)]
 	public int num_blocks = 1;
 
@@ -77,6 +85,7 @@ public class TerrainCreatorScript : MonoBehaviour
 	private int curRes = -1;
 
 	private GenericTerrain t;
+	private Vector3 scale;
 
 	void genRandom ()
 	{
@@ -87,7 +96,7 @@ public class TerrainCreatorScript : MonoBehaviour
 	private void init ()
 	{
 		if (t == null) {
-			t = new GenericTerrain (GetComponent<Transform> ().position); 
+			t = new GenericTerrain (GetComponent<Transform> ().position, scale); 
 		} 
 	}
 
@@ -118,6 +127,7 @@ public class TerrainCreatorScript : MonoBehaviour
 	// every time this component is enabled
 	void onEnable ()
 	{
+		scale = new Vector3 (islandSize, islandHeight, islandSize);
 		Debug.Log ("in onEnable");
 		UpdateTerrain ();
 	}
@@ -138,5 +148,12 @@ public class TerrainCreatorScript : MonoBehaviour
 
 		transform.GetComponent<MeshCollider> ().sharedMesh = t.Mesh;
 		Debug.Log ("Set shared mesh");
+
+
+		for (int i = 0; i < coloring.colorKeys.Length; i++) {
+			Debug.Log ("COLOR time : " + coloring.colorKeys [i].time);
+			Debug.Log ("COLOR time : " + coloring.alphaKeys [i].time);
+
+		}
 	}
 }
