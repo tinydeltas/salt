@@ -18,10 +18,9 @@ namespace MeshLib
 		public static MaskMethod[] MaskMethods = {
 			RadialTransform, 
 			RoundTransform, 
-			SquareTransform
+//			SquareTransform
 		};
-
-		//todo
+			
 		public static MaskMethod GenRandom() {
 			return RoundTransform;
 		}
@@ -29,7 +28,7 @@ namespace MeshLib
 		public static float Transform(Vector3 p, float noise,MaskMethod m, float size = 1f) {
 			float distance = m(p, size);
 
-			float max_width = size * 0.5f;
+			float max_width = size * 0.5f - 10.0f;
 			float delta = distance / max_width;
 			float gradient = delta * delta;
 
@@ -51,11 +50,11 @@ namespace MeshLib
 			return distance_x*distance_x + distance_y*distance_y; 
 		}
 
-		public static float SquareTransform(Vector3 p, float size) {
-			float distance_x = Mathf.Abs (p.x);
-			float distance_y = Mathf.Abs (p.y);
-			return Mathf.Max(distance_x, distance_y);
-		}
+//		public static float SquareTransform(Vector3 p, float size) {
+//			float distance_x = Mathf.Abs (p.x);
+//			float distance_y = Mathf.Abs (p.y);
+//			return Mathf.Max(distance_x, distance_y);
+//		}
 
 		private float AlphaTransform(float cutoff) {
 			return 0f;

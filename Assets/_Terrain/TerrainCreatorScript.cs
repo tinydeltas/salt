@@ -149,11 +149,18 @@ public class TerrainCreatorScript : MonoBehaviour
 		transform.GetComponent<MeshCollider> ().sharedMesh = t.Mesh;
 		Debug.Log ("Set shared mesh");
 
-
-		for (int i = 0; i < coloring.colorKeys.Length; i++) {
-			Debug.Log ("COLOR time : " + coloring.colorKeys [i].time);
-			Debug.Log ("COLOR time : " + coloring.alphaKeys [i].time);
-
-		}
+//		for (int i = 0; i < coloring.colorKeys.Length; i++) {
+//			Debug.Log ("COLOR value : " + coloring.colorKeys [i].color);
+//			Debug.Log ("COLOR time : " + coloring.colorKeys [i].time);
+//
+//		}
+//
+//		for (int i = 0; i < coloring.alphaKeys.Length; i++) {
+//			Debug.Log ("ALPHA value : " + coloring.alphaKeys [i].alpha);
+//			Debug.Log ("ALPHA time : " + coloring.alphaKeys [i].time);
+//
+//		}
+//
+//		Debug.Log ("MODE: " + coloring.mode.ToString ()); 
 	}
 }

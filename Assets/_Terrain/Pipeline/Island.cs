@@ -33,8 +33,10 @@ namespace Pipeline
 		{
 			Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
 
-			if (m == null)
-				Mask = MeshLib.Mask.SquareTransform;
+			if (m == null) {
+				int idx = Random.Range (0, MeshLib.Mask.MaskMethods.Length);
+				Mask = MeshLib.Mask.MaskMethods [idx];
+			}
 	
 			Debug.Log (this.ToString ());
 		}

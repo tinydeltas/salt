@@ -15,19 +15,19 @@ namespace Pipeline
 		// basic options
 		public NeighborType type = NeighborType.vonNeumann;
 
-		[Range (10, 100)] 
-		public float tileSize = 50f;
+		[Range (50, 500)] 
+		public float tileSize = 250f;
 		public bool testTile = false;
 		public bool testIsland = false;
 
-		[Range(0.3f, 0.7f)]
-		public float islandDensity = 0.3f;
+		[Range (0.3f, 0.7f)]
+		public float islandDensity = 0.2f;
 
 		[Range (1, 100)]
-		public float islandSize = 80f;
+		public float minIslandSize = 40f;
 
 		[Range (1, 100)]
-		public float islandHeight = 50f;
+		public float islandHeight = 80f;
 	
 		[SerializeField]
 		private static Dictionary<Vector3, OceanTile> activeTiles = null;
@@ -77,7 +77,7 @@ namespace Pipeline
 			OceanTile firstTile = addUnexploredTile (GetTileKey (t.position));
 			curTile = firstTile;
 
-			scale = new Vector3 (islandSize, islandHeight, islandSize);
+			scale = new Vector3 (minIslandSize, islandHeight, minIslandSize);
 
 		}
 	
@@ -185,7 +185,7 @@ namespace Pipeline
 
 			// always have something to stand on for now 
 			GameObject plane = GameObject.CreatePrimitive (PrimitiveType.Plane); 
-			__transform ("Tile", convertToAbsCoords(t.Coor), t.Scale, plane);
+			__transform ("Tile", convertToAbsCoords (t.Coor), t.Scale, plane);
 
 			if (testTile) {
 				// Debug.Log ("[Nav] [init] in test mode, adding plane with random color");
@@ -197,7 +197,7 @@ namespace Pipeline
 				GameObject ground = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
 
 				Vector3 scale = new Vector3 (tileSize / 100f, 0.1f, tileSize / 100f);
-				__transform ("Ocean", convertToAbsCoords(t.Coor), scale, ground);
+				__transform ("Ocean", convertToAbsCoords (t.Coor), scale, ground);
 
 				// lower the plane a little bit 
 				Vector3 pos = plane.transform.position; 
@@ -205,7 +205,8 @@ namespace Pipeline
 //				plane.GetComponent<Renderer> ().material.color = Color.white;
 
 				// set the ocean tile as child to keep the inspector clean
-				ground.GetComponent<Transform>().transform.parent = plane.transform;
+				ground.GetComponent<Transform> ().transform.parent = plane.transform;
+				Destroy (plane.GetComponent<MeshRenderer> ());
 			}
 
 			allTiles.Add (init, t); 
@@ -236,12 +237,12 @@ namespace Pipeline
 				// create empty game object 
 //				obj = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 
-				obj = new GameObject(); 
+				obj = new GameObject (); 
 				obj.AddComponent<MeshCollider> (); 
 				obj.AddComponent<MeshFilter> (); 
 
 				obj.GetComponent<MeshCollider> ().sharedMesh = m;
-				obj.GetComponent<MeshFilter>().mesh = m;
+				obj.GetComponent<MeshFilter> ().mesh = m;
 
 				obj.AddComponent<MeshRenderer> ();
 			}
