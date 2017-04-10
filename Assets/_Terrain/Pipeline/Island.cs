@@ -11,66 +11,82 @@ namespace Pipeline
 {
 	public class Island : GenericTerrain
 	{
-
-		// USED FOR TESTING; public for now
-		[SerializeField]
-		public MaskMethod Mask;
-
-		private static float islandLevel= -1f;
-
-
 		//==============================================
-		// constructor
+		// PRIVATE VARIABLES
+
+		private MaskMethod Mask;
+		private static float islandLevel = -1f;
+	
+		//==============================================
+		// CONSTRUCTOR
 
 		// creates a random island given a few parameters
 		public Island (Vector3 init, 
-					 	Vector3 scale, 
+		               Vector3 scale, 
 		               Material mat = null,  
 		               float[] ratios = null, 
-					   MeshLib.MaskMethod m = null)
+		               MeshLib.MaskMethod m = null)
 			: base (init, scale, mat, ratios)
-
 		{
-			Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
+			// adjust the y coordinate of the island
+			this.Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
 
-			if (m == null) {
-				int idx = Random.Range (0, MeshLib.Mask.MaskMethods.Length);
-				Mask = MeshLib.Mask.MaskMethods [idx];
+			// assign the type of mask
+			this.Mask = m != null ? m : MeshLib.Mask.GenRandom ();
+
+			if (this.Mask == null) {
+				Debug.Log ("WHAT1");
 			}
-	
-			Debug.Log (this.ToString ());
+
+			_debug ("Initialized");
 		}
 
 		//==============================================
-		// island interfacing operations
+		// ISLAND OPERATIONS
 
 		public Mesh CreateAndDisplayIsland ()
 		{
-			Debug.Log ("[Island] About to create Island");
+			_debug ("Creating island");
 			newTerrain (); 
+
 			// create a mesh out of these params (deterministic) 
-		
-			Debug.Log ("[Island] About to render Island");
-			renderTerrain(Mask); 
+			renderTerrain (Mask); 
 			return this.Mesh; 
 		}
 
-
 		public void HideIsland ()
 		{
+			_debug ("Hiding island");
 			// remove mesh or plane component 
+
 		}
 
 		public void DestroyIsland ()
 		{
+			_debug ("Destroying island.");
 			this.destroyTerrain (); 
 		}
-
 
 		//==============================================
 		// UTIL
 
+		//==============================================
+		// DOCUMENTATION AND DEBUGGING
 
+		public string ToString ()
+		{
+			return "[Island info]"
+			+ "\n[Mask]\t\t" + this.Mask.ToString ()
+			+ "\n[islandLevel]\t\t" + islandLevel
+			+ "\n";
+		}
+
+		new
+		public void _debug (string message)
+		{
+			Debug.Log ("[Island log] " + message);
+			Debug.Log (this.ToString ());
+			Debug.Log ("[Terrain info] " + base.ToString ());
+		}
 	}
-
 }

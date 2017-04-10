@@ -9,7 +9,6 @@ namespace NoiseLib
 	{
 		private static int hashMask3D = 15;
 
-
 		private static int[][] gradients3D = {
 			new int[]{ 1, 1, 0 }, 
 			new int[] { 1, 1, 0 }, 
@@ -29,8 +28,7 @@ namespace NoiseLib
 			new int[]{ 0, -1, -1 }
 		};
 
-
-
+		// 2D Perlin noise
 		public float noise (Vector2 p)
 		{
 			// get shared & individual constants 
@@ -95,7 +93,7 @@ namespace NoiseLib
 			return prod * 0.5f;
 		}
 
-		// four-dimensional option
+		// 3D NOISE
 		public float _noise (Vector3 p)
 		{
 			// get constants 
@@ -178,6 +176,5 @@ namespace NoiseLib
 			float res = M.Lerp (t0, t1, dz); 
 			return res;
 		}
-
 	}
 }

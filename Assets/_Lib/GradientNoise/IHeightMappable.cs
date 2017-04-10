@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace NoiseLib
 {
-	
 	public interface IHeightMappable<T>
 	{
 		float noise (T v);

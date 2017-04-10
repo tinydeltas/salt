@@ -43,17 +43,11 @@ namespace Util
 			return Mathf.FloorToInt (x);
 		}
 
-		//		public static int floor (float x)
-		//		{
-		//			return x > 0 ? (int)x : (int)x - 1;
-		//		}
-
 		public static float Lerp (float a, float b, float t)
 		{
 			return Mathf.Lerp (a, b, t);
 		}
-
-
+			
 		public static Vector2 Lerp (Vector2 a, Vector2 b, float t)
 		{
 			return Vector2.Lerp (a, b, t);

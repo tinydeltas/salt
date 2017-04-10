@@ -1,12 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-//public enum Quadrant{
-//	None, UpperLeft, UpperRight, LowerLeft, LowerRight
-//}
-//
-public enum Dir {
+﻿public enum Dir {
 	None,
 	TopLeft, Top, TopRight, 
 	Left, Right, 
@@ -16,4 +8,6 @@ public enum Dir {
 public enum NeighborType {
 	Complete, vonNeumann
 }
+
+
 

@@ -1,16 +1,9 @@
-﻿using System.Collections;
+﻿// TODO 
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CorrosionImpl : MonoBehaviour {
+public class CorrosionImpl {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }

@@ -5,7 +5,6 @@ using M = Util.Math;
 
 namespace NoiseLib
 {
-
 	public class ExpNoise :  IHeightMappable<Vector2>
 	{
 		private float[] gradients = new float[256];
@@ -105,9 +104,7 @@ namespace NoiseLib
 
 		public float _noise (Vector3 p)
 		{
-
 			return 0f;
-
 		}
 
 		private float s_curve (float x)

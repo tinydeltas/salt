@@ -7,7 +7,7 @@ namespace NoiseLib
 {
 	public class ValueNoise : IHeightMappable<Vector2>
 	{
-
+		// 2D noise
 		public float noise (Vector2 p)
 		{
 			// get constants 
@@ -54,7 +54,7 @@ namespace NoiseLib
 			return prod - 0.5f; 
 		}
 
-		// four-dimensional version
+		// 3D noise
 		public float _noise (Vector3 p)
 		{
 			// get constants

@@ -13,7 +13,7 @@ public class TerrainCreatorScript : MonoBehaviour
 	[Header ("basic options")]
 
 	[Range (10, 200)]
-	public int resolution = 64;
+	public int resolution = 128;
 
 	public float island_level = -1;
 

@@ -6,7 +6,6 @@ namespace NoiseLib
 {
 	public class Constants
 	{
-
 		public static IHeightMappable<Vector2>[] MappableClasses = {
 			new ExpNoise (), 
 			new PerlinNoise (), 
