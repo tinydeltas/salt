@@ -5,21 +5,18 @@ using UnityEngine;
 using NoiseLib;
 using MeshLib;
 using Util;
+using MaterialLib;
 
 namespace TerrainLib
 {
 	public class GenericTerrain
 	{
-		//==============================================
-		// CONSTANTS
+		public static bool debug = false;
 
 		//==============================================
 		// PRIVATE VARIABLES
 
-		private static float sizeFactor = 10f;
-		private IHeightMappable<Vector2> method;  
-
-		private bool debug = false;
+		private static float sizeFactor = 10f; 
 
 		//==============================================
 		// supposed to be private (todo)
@@ -30,7 +27,7 @@ namespace TerrainLib
 		public float frequency = 4f;
 		public float lacunarity = 2f;
 		public float persistence = 0.4f;
-		//
+
 		//==============================================
 		// CONSTRUCTOR
 
@@ -39,8 +36,8 @@ namespace TerrainLib
 		                       Material mat = null, 
 			IHeightMappable<Vector2> method = null)
 		{
-			this.method = method != null ? method : Constants.MappableClasses [0];
-			this.material = mat != null ? mat : new Material (Shader.Find ("TerrainShader"));
+			this.Method = method != null ? method : Constants.MappableClasses [0];
+			this.Material = mat != null ? mat : MaterialController.GenRandom ();
 	
 			this.Loc = init;
 			this.Scale = new Vector3 (
@@ -57,22 +54,19 @@ namespace TerrainLib
 		//==============================================
 		// MEMBERS
 
-		// PUBLIC SET
+		// PUBLIC SET  
 
 		// used for scaling mesh
 		public Vector3 Scale { get; set; }
 
-		// relative noise ratios
-//		public float[] noiseRatios { get; set ; }
-
-		// PRIVATE SET
-
+		// noise method used 
+		public IHeightMappable<Vector2> Method {get; private set; }
 
 		// center, absolute coordinates on world map
 		public Vector3 Loc { get; protected set; }
 
 		// material of the island
-		public Material material { get; private set; }
+		public Material Material { get; private set; }
 
 		// island mesh
 		public Mesh Mesh { get; private set; }
@@ -102,9 +96,6 @@ namespace TerrainLib
 			if (coloring == null) {
 				coloring = Coloring;
 			}
-				
-//			float maxHeight = 0f; 
-//			float minHeight = 1f;
 
 			// counter for vertices
 			int v = 0; 
@@ -123,7 +114,7 @@ namespace TerrainLib
 					Vector3 p = Vector3.Lerp (p0, p1, j * dx);
 					Vector3 n = new Vector3 (p.x + Loc.x, p.y + Loc.z);
 
-					float height = genNoise (method, n);
+					float height = genNoise (n);
 
 					// apply maske
 					height = MeshLib.Mask.Transform (p, height, mask);
@@ -136,43 +127,18 @@ namespace TerrainLib
 					vertices [v].y = height;
 
 					v++;
-//
-//					if (Random.Range(0, 50) == 40) {
-//						Debug.Log ("Point: " + p.ToString ());
-//						Debug.Log ("Loc: " + Loc.ToString ());
-//						Debug.Log ("Height" + height.ToString ());
-//						Debug.Log ("Modified: " + modified.ToString ());
-//						Debug.Log ("Color: " + newColor.ToString ());
-//					}
-//
-//					if (height > maxHeight)
-//						maxHeight = height; 
-//					if (height < minHeight)
-//						minHeight = height; 
 				}
 			}
-//			Debug.Log ("Min height: " + minHeight.ToString ()); 
-//			Debug.Log ("Max height: " + maxHeight.ToString ());
-//			Debug.Log ("Difference: " + (maxHeight - minHeight).ToString ());
-//			Debug.Log ("[GenericTerrain][renderTerrain] about to set Mesh and generate triangles!");
 	
 			this.Mesh.vertices = vertices;
 			this.Mesh.colors = colors;
 			this.Mesh.RecalculateNormals (); 
 		}
 
-		private float genNoise (IHeightMappable<Vector2> method, Vector3 point)
-		{
-			float finalHeight = 0f;
-	
-			finalHeight += noiseWithOctaves (method, point);
-			return finalHeight;
-		}
-
-		private float noiseWithOctaves (IHeightMappable<Vector2> cl, Vector3 point)
+		private float genNoise (Vector3 point)
 		{
 			float freq = frequency;
-			float sum = cl.noise (point * freq);
+			float sum = Method.noise (point * freq);
 
 			float amplitude = 1f;
 			float range = 1f;
@@ -181,12 +147,11 @@ namespace TerrainLib
 				freq *= lacunarity;
 				amplitude *= persistence;
 				range += amplitude;
-				sum += cl.noise (point * freq) * amplitude;
+				sum += Method.noise (point * freq) * amplitude;
 			}
 			return sum / range;
 		}
-
-
+			
 		//==============================================
 		// TERRAIN LIFECYCLE OPERATIONS
 
@@ -225,7 +190,7 @@ namespace TerrainLib
 		{
 			Gradient g = new Gradient (); 
 	
-			int n = Random.Range (5, 8); 
+			int n = Random.Range (6, 8); 
 
 			GradientColorKey[] keys = new GradientColorKey[n]; 
 			for (int i = 0; i < n; i++) {

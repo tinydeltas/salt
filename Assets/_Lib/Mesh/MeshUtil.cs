@@ -6,6 +6,8 @@ namespace MeshLib
 {
 	public static class MeshUtil
 	{
+		public static bool debug = false; 
+
 		//==============================================
 		// MESH FUNCTIONS 
 
@@ -84,7 +86,9 @@ namespace MeshLib
 
 		public static void _debug (string message)
 		{
-			Debug.Log ("[MeshLib log]\t\t" + message);
+			if (debug) {
+				Debug.Log ("[MeshLib log]\t\t" + message);
+			}
 		}
 
 		//==============================================

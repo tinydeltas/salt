@@ -4,40 +4,40 @@ using UnityEngine;
 
 public class Seeder
 {
-	List<Vector3> seeds = new List<Vector3> ();
+	public static bool debug = false;
 
 	//==============================================
 	// CONSTRUCTOR
 
-	public Seeder (float d = 0.9f)
+	public static void Init (float d = 0.9f)
 	{
 		Density = d;
+		seeds = new List<Vector3> (); 
 
 		// calculate threshold based on the desired density
 		// todo
-		_debug("Initialized");
+		_debug ("Initialized");
 	}
 
 	//==============================================
 	// MEMBERS
 
-	public float Density {
+	public static float Density {
 		get;
 		private set;
 	}
 
+	public static List<Vector3> seeds  { get; private set; }
+
 	// seed potential island centers given the tile location.
 	// return the island's coordinates in the form of a vector, or null if seeding fails.
-	public List<Vector3> Seed (Vector3 pos, float range)
+	public static Vector3[] Seed (Vector3 pos, float range)
 	{
-		_debug ("Seeding new islands");
-
 		seeds.Clear ();
 
 		Vector3 randPos = pos; 
 		randPos.x += Random.Range (0, range); 
 		randPos.z += Random.Range (0, range); 
-
 
 		while (Mathf.PerlinNoise (randPos.x, randPos.z) > (1f - Density)) { 
 			seeds.Add (randPos);
@@ -46,7 +46,8 @@ public class Seeder
 			randPos.z = Random.Range (pos.z, pos.z + range); 
 		} 
 
-		return seeds;	
+		_debug ("Seeding new islands");
+		return seeds.ToArray();	
 	}
 
 	//==============================================
@@ -56,14 +57,17 @@ public class Seeder
 	public string ToString ()
 	{
 		return "[Seeder info]"
-		+ "\n[Density]\t\t" + this.Density
+		+ "\n[Density]\t\t" + Density
+		+ "\n[Seeds]\t\t" + seeds.Count
 		+ "\n";
 
 	}
 
-	public void _debug (string message)
+	public static void _debug (string message)
 	{
-		Debug.Log ("[Seeder log]\t\t" + message);
-		Debug.Log (this.ToString ());
+		if (debug) {
+			Debug.Log ("[Seeder log]\t\t" + message);
+//			Debug.Log (ToString ());
+		}
 	}
 }

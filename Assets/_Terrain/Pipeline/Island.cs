@@ -11,12 +11,13 @@ namespace Pipeline
 {
 	public class Island : GenericTerrain
 	{
+		public static new bool debug = false;
+
 		//==============================================
 		// PRIVATE VARIABLES
 
-		private MaskMethod Mask;
 		private static float islandLevel = -1f;
-		private bool debug = false;
+
 		//==============================================
 		// CONSTRUCTOR
 
@@ -41,6 +42,8 @@ namespace Pipeline
 			_debug ("Initialized");
 		}
 
+		public MaskMethod Mask { get; private set; }
+
 		//==============================================
 		// ISLAND OPERATIONS
 
@@ -58,7 +61,6 @@ namespace Pipeline
 		{
 			_debug ("Hiding island");
 			// remove mesh or plane component 
-
 		}
 
 		public void DestroyIsland ()

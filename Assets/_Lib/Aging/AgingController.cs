@@ -4,6 +4,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AgingController {
+namespace AgingLib
+{
+	public static class AgingController
+	{
 
+	}
 }

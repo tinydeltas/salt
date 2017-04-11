@@ -5,12 +5,15 @@ using UnityEngine;
 using UnityStandardAssets.Water;
 
 using MeshLib;
+using MaterialLib;
 
 namespace Pipeline
 {
 	// attaches to first person controller
 	public class Nav : MonoBehaviour
 	{
+		public static bool debug = false;
+
 		//==============================================
 		// SCRIPT OPTIONS
 		public NeighborType type = NeighborType.Complete;
@@ -52,12 +55,9 @@ namespace Pipeline
 		private static int totalTiles = 0;
 		private static int numActive = 0;
 
-		private Seeder seeder;
-		private Opt opt;
 		private Vector3 scale;
 
-		private OceanTile curTile = null;
-		private bool debug = false;
+		private Vector3 curTile = Vector3.one;
 
 		//==============================================
 		// CONSTANTS
@@ -81,10 +81,17 @@ namespace Pipeline
 				}
 			};
 
+		private void InitModules ()
+		{
+			// init everything here so they don't need to be instantiated later 
+			MaterialController.Init (); 
+			Seeder.Init (islandDensity);
+		}
+
 		void OnEnable ()
 		{
-			this.seeder = new Seeder (islandDensity);
-			this.opt = new Opt (maxTiles); 
+			InitModules (); 
+//			this.opt = new Opt (maxTiles); 
 
 			this.activeTiles = new Dictionary<Vector3, OceanTile> ();
 			this.allTiles = new Dictionary<Vector3, OceanTile> ();
@@ -95,7 +102,7 @@ namespace Pipeline
 			// this will introduce an exception and make the first tile set at (0, 0)
 			OceanTile firstTile = addUnexploredTile (GetTileKey (t.position));
 
-			this.curTile = firstTile;
+			this.curTile = firstTile.Coor;
 			this.scale = new Vector3 (minIslandSize, islandHeight, minIslandSize);
 			_debug ("Initialized");
 		}
@@ -106,7 +113,7 @@ namespace Pipeline
 			Vector3 position = GetComponent<Transform> ().position;
 
 			// update current tile if needed and display its neighborhood
-			if (curTile == null || !inTile (curTile.Coor, position)) {
+			if (curTile == Vector3.one || !inTile (curTile, position)) {
 				Vector3 key = GetTileKey (position);
 //				__runOpt (key);
 
@@ -116,29 +123,29 @@ namespace Pipeline
 				OceanTile tile = activeTiles.ContainsKey (key) ? activeTiles [key] 
 					: addUnexploredTile (position);
 
-				curTile = tile;
+				curTile = tile.Coor;
 			}
 		}
 
-		private void __runOpt (Vector3 key)
-		{
-			if (!runOpt)
-				return;
-
-			// register tile in optimization module 
-			opt.UpdateCache (key); 
-			List<Vector3> cleanups = opt.ClearCache ();
-
-			foreach (Vector3 v in cleanups) {
-				_debug ("[runOpt] destroying tile: " + v.ToString ());
-				Destroy (GameObject.Find (__conObjectName ("Tile", key)));
-				allTiles [v] = null;
-				if (!activeTiles.Remove (v)) {
-					Debug.LogError ("Coordinate " + v.ToString () + "should be in list of active tiles");
-					// this should not throw an error
-				}
-			}
-		}
+		//		private void __runOpt (Vector3 key)
+		//		{
+		//			if (!runOpt)
+		//				return;
+		//
+		//			// register tile in optimization module
+		//			opt.UpdateCache (key);
+		//			List<Vector3> cleanups = opt.ClearCache ();
+		//
+		//			foreach (Vector3 v in cleanups) {
+		//				_debug ("[runOpt] destroying tile: " + v.ToString ());
+		//				Destroy (GameObject.Find (__conObjectName ("Tile", key)));
+		//				allTiles [v] = null;
+		//				if (!activeTiles.Remove (v)) {
+		//					Debug.LogError ("Coordinate " + v.ToString () + "should be in list of active tiles");
+		//					// this should not throw an error
+		//				}
+		//			}
+		//		}
 
 		private OceanTile addUnexploredTile (Vector3 refPos)
 		{
@@ -147,8 +154,8 @@ namespace Pipeline
 			Vector3 init = GetTileKey (refPos);
 
 			OceanTile t; 
-			if (curTile != null) {
-				Vector2 d = getDirFromVec (init, curTile.Coor);
+			if (curTile != Vector3.one) {
+				Vector2 d = getDirFromVec (init, curTile);
 
 				if (type == NeighborType.vonNeumann && isCornerDir (d)) {
 					// only make new tile if it's an edge case 
@@ -168,7 +175,7 @@ namespace Pipeline
 			// add neighbors (some may already be filled in
 			Dir[] dirs = neighborToDir [type];
 			foreach (Dir direction in dirs) {
-				addNeighborTile (t, OceanTile.DirVecs [direction]);
+				addNeighborTile (t.Coor, OceanTile.DirVecs [direction]);
 			}
 				
 			_debug ("New tile added");
@@ -176,15 +183,15 @@ namespace Pipeline
 		}
 
 		// create and link a new tile to its neighbor based on its direction
-		private OceanTile addNeighborTile (OceanTile orig, Vector2 d)
+		private OceanTile addNeighborTile (Vector3 orig, Vector2 d)
 		{
 			_debug ("[addNeighborTile] adding neighbor "); 
 			
 			// get prospective key 
-			Vector3 init = GetNeighborTileKey (orig.Coor, d);
+			Vector3 init = GetNeighborTileKey (orig, d);
 
-			if (curTile != null && curTile.Coor == init) {
-				return curTile; 
+			if (curTile != Vector3.one && curTile == init) {
+				return allTiles[curTile]; 
 			} else if (allTiles.ContainsKey (init)) {
 				return allTiles [init];
 			}
@@ -206,50 +213,50 @@ namespace Pipeline
 			__transform ("Tile", convertToAbsCoords (t.Coor), t.Scale, plane);
 
 			// initialize and display islands associated with tile
-			List<Vector3> islePos = seeder.Seed (t.Coor, t.Size);
-
-			Color baseColor = waterColor; 
-			foreach (Vector3 p in islePos) {
-				_debug ("[init] Received isle pos: " + p.ToString ());
-
-				Island i = new Island (p, scale);
-				t.activeIslands.Add (i);  
-				// change the color of the water around the island
-				baseColor = i.Coloring.colorKeys [4].color; // todo? 
-				baseColor.a = 0.15f;
-
-				// display island
-				StartCoroutine(__newIsland(i)); 
-			}
+			GameObject water = null;
 
 			if (testTile) {
 				// create a plane instead of the oecan 
 				Color randColor = new Color (Random.value, Random.value, Random.value); 
 				plane.GetComponent<Renderer> ().material.color = randColor;
 			} else {
-				GameObject water = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
+				water = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
 
 				// modify the scale bc the size of plane is different from the tile size
 				Vector3 scale = new Vector3 (tileSize / 100f, 0.1f, tileSize / 100f);
 				__transform ("Ocean", convertToAbsCoords (t.Coor), scale, water);
 
-				// lower the plane a little bit 
-				Vector3 pos = plane.transform.position; 
-				plane.transform.position = new Vector3 (pos.x, -1f, pos.z);
-
 				// we don't want meshrenderer to mess things up
 				Destroy (plane.GetComponent<MeshRenderer> ());
 
 				// set the ocean tile as child to keep the inspector clean
-				__setAsParent (water, plane);
-
-				// change water color to be gross 
-				__changeWaterColor (water, baseColor, refractColor);
+//				__setAsParent (water, oceanTiles);
 			}
-
+				
 			allTiles.Add (init, t); 
 			totalTiles++;
 
+			Vector3[] islePos = Seeder.Seed (t.Coor, t.Size);
+
+			Color baseColor = waterColor; 
+			foreach (Vector3 p in islePos) {
+//				Debug.Log("[init] Received isle pos: " + p.ToString ());
+
+				Island i = new Island (p, scale);
+				t.activeIslands.Add (i); 
+			
+				// change the color of the water around the island
+				baseColor = i.Coloring.colorKeys [4].color; // todo? 
+				baseColor.a = 0.15f;
+	
+				// display island
+				StartCoroutine (__newIsland (i)); 
+			}
+
+			if (!testTile && baseColor != waterColor) {// change water color to be gross 
+				__changeWaterColor (water, baseColor, refractColor);
+			}
+//
 			return t;
 		}
 
@@ -272,9 +279,8 @@ namespace Pipeline
 			// make the parent of tile gameobject
 //			__setAsParent (obj, newObj);
 
-			obj.GetComponent<MeshRenderer> ().material = i.material;
+			obj.GetComponent<MeshRenderer> ().material = i.Material;
 			yield return null;
-	
 		}
 
 
@@ -296,7 +302,6 @@ namespace Pipeline
 			obj.name = __conObjectName (name, coords);
 			obj.transform.position = coords;
 			obj.transform.localScale = scale;
-
 		}
 
 		private void __setAsParent (GameObject child, GameObject parent)
@@ -313,6 +318,7 @@ namespace Pipeline
 
 		private string __conObjectName (string name, Vector3 coords)
 		{
+			
 			return name + " " + coords.ToString ();
 		}
 
@@ -324,7 +330,7 @@ namespace Pipeline
 		public bool inTile (Vector3 Coor, Vector3 loc)
 		{
 			return loc.x >= Coor.x && loc.x < (Coor.x + tileSize) &&
-				loc.z >= Coor.z && loc.z < (Coor.z + tileSize);
+			loc.z >= Coor.z && loc.z < (Coor.z + tileSize);
 		}
 
 		private bool isCornerDir (Vector2 v)
@@ -361,6 +367,15 @@ namespace Pipeline
 				(pos1.z - pos2.z) / tileSize);
 		}
 
+		private void turnAllDebugOff() {
+			OceanTile.debug = false;
+			Seeder.debug = false; 
+			Island.debug = false; 
+			MeshLib.MeshUtil.debug = false; 
+			TerrainLib.GenericTerrain.debug = false; 
+			debug = false; 
+		}
+
 		//==============================================
 		// DOCUMENTATION AND DEBUGGING
 
@@ -373,7 +388,7 @@ namespace Pipeline
 			           + "\n[#Tiles]\t\t" + allTiles.Count.ToString ()
 			           + "\t[totalTiles]\t\t" + totalTiles.ToString (); 
 
-			if (curTile != null) {
+			if (curTile != Vector3.one) {
 				s += "\n[curTile]\t\t" + curTile.ToString ();
 			}
 			s += "\n";

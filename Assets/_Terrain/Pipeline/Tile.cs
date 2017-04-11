@@ -6,6 +6,9 @@ namespace Pipeline
 {
 	public class OceanTile
 	{
+
+		public static bool debug = false;
+
 		//==============================================
 		// CONSTANTS
 
@@ -29,8 +32,6 @@ namespace Pipeline
 		// generate random ID (might be useful later on?)
 		private System.Guid id = System.Guid.NewGuid ();
 
-		private bool debug = false;
-
 		//==============================================
 		// CONSTRUCTOR
 
@@ -41,7 +42,6 @@ namespace Pipeline
 			Size = size;
 			Scale = new Vector3 (size / 10, 0.1f, size / 10);
 
-//			activeNeighbors = new Dictionary<Vector2, OceanTile> ();
 			activeIslands = new List<Island> (); 
 
 			_debug ("Initialized");
