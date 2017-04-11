@@ -26,7 +26,7 @@ public class Seeder
 
 	// seed potential island centers given the tile location.
 	// return the island's coordinates in the form of a vector, or null if seeding fails.
-	public LinkedList<Vector3> Seed (Vector3 pos, float range)
+	public List<Vector3> Seed (Vector3 pos, float range)
 	{
 		_debug ("Seeding new islands");
 
@@ -34,10 +34,10 @@ public class Seeder
 		randPos.x += Random.Range (0, range); 
 		randPos.z += Random.Range (0, range); 
 
-		LinkedList<Vector3> seeds = new LinkedList<Vector3> (); 
+		List<Vector3> seeds = new List<Vector3> (); 
 
 		while (Mathf.PerlinNoise (randPos.x, randPos.z) > (1f - Density)) { 
-			seeds.AddFirst (randPos);
+			seeds.Add (randPos);
 
 			randPos.x = Random.Range (pos.x, pos.x + range); 
 			randPos.z = Random.Range (pos.z, pos.z + range); 

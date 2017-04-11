@@ -14,16 +14,14 @@ namespace Pipeline
 		//	public int maxMeshes = 20;
 
 		// used to implement lru cache
-		private static Hashtable nodes = null;
-		private static LinkedList<Vector3> visitedTiles = null;
+		private static List<Vector3> visitedTiles = null;
 
 		//==============================================
 		// CONSTRUCTOR
 
 		public Opt (int maxTiles)
 		{
-			visitedTiles = new LinkedList<Vector3> (); 
-			nodes = new Hashtable ();
+			visitedTiles = new List<Vector3>(); 
 
 			_debug ("Initialized");
 		}
@@ -33,31 +31,30 @@ namespace Pipeline
 
 		public void UpdateCache (Vector3 coor)
 		{
-			this.ToString (); 
+			_debug ("Updating cache");
 
-			if (!nodes.ContainsKey (coor)) {
-				_debug ("Adding new entry to cache: ");
-				LinkedListNode<Vector3> node = visitedTiles.AddFirst (coor);
-				nodes.Add (coor, node); 
-			} else {
-				// exists in cache, find it and move it 
-				LinkedListNode<Vector3> node = (LinkedListNode<Vector3>)nodes [coor]; 
+			// exists in cache, find it and move it 
+			if (visitedTiles.Contains(coor))
+				visitedTiles.Remove(coor); 
 
-				// patch the empty part
-
-				// move to head
-			
-			}
+			// move to head
+			visitedTiles.Insert(0, coor);
 		}
 
-		public void ClearCache ()
+		public List<Vector3> ClearCache ()
 		{
 			// compress tiles that haven't been visited recently in the queue
+			List<Vector3> cleanup = new List<Vector3>(); 
 
-			for (int i = Mathf.Min (maxTiles, nodes.Count - 1); i < nodes.Count; i++) {
-				nodes.Remove (nodes [i]);
+			for (int i = maxTiles; i < visitedTiles.Count; i++) {
+				Vector3 key = visitedTiles [i]; 
+				visitedTiles.Remove (key);
+				cleanup.Add(key);
+
+				_debug ("Removing: " + key.ToString ()); 
 			}
 
+			return cleanup;
 		}
 
 		//==============================================
@@ -70,7 +67,7 @@ namespace Pipeline
 		public string ToString ()
 		{
 			return "[Opt info]"
-			+ "\n[#Tiles]\t\t" + nodes.Count.ToString ()
+				+ "\n[#Tiles]\t\t" + visitedTiles.Count.ToString ()
 			+ "\n[Max allowed]\t\t" + maxTiles.ToString ()
 			+ "\n";
 		}

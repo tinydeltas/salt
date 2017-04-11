@@ -39,8 +39,8 @@ namespace Pipeline
 			Size = size;
 			Scale = new Vector3 (size / 10, 0.1f, size / 10);
 
-			activeNeighbors = new Dictionary<Vector2, OceanTile> ();
-			activeIslands = new LinkedList<Island> (); 
+//			activeNeighbors = new Dictionary<Vector2, OceanTile> ();
+			activeIslands = new List<Island> (); 
 
 			_debug ("Initialized");
 		}
@@ -58,40 +58,7 @@ namespace Pipeline
 		public Vector3 Scale { get; private set; }
 
 		// its active islands
-		public  LinkedList<Island> activeIslands { get; private set; }
-
-		// its active neighbors
-		public Dictionary<Vector2, OceanTile> activeNeighbors { get; private set; }
-
-		//==============================================
-		// interfacing with class members
-
-		public bool AddNeighbor (Dir d, OceanTile t)
-		{
-			Vector2 dirVec = DirVecs [d];
-			return AddNeighbor (dirVec, t);
-		}
-
-		public bool AddNeighbor (Vector2 dirVec, OceanTile t)
-		{
-			if (activeNeighbors.ContainsKey (dirVec)) {
-				_debug ("[AddNeighbor] Trying to replace a neighbor which already exists.");
-				return false;
-			}
-			activeNeighbors.Add (dirVec, t); 
-			return true;
-		}
-
-		public void RemoveNeighbor (Dir d)
-		{
-			RemoveNeighbor (DirVecs [d]);
-		}
-
-		public void RemoveNeighbor (Vector2 d)
-		{
-			_debug ("[RemoveNeighbor] for: " + this.ToString ()); 
-			activeNeighbors.Remove (d);
-		}
+		public  List<Island> activeIslands { get; private set; }
 
 		//==============================================
 		// state
@@ -130,7 +97,7 @@ namespace Pipeline
 			+ "\t[Size]\t" + this.Size.ToString ()
 			+ "\t[Scale]\t" + this.Scale.ToString ()
 			+ "\t[Created]\t\t" + this.created.ToString ()
-			+ "\n[#Neighbors]\t\t" + activeNeighbors.Count.ToString ()
+//			+ "\n[#Neighbors]\t\t" + activeNeighbors.Count.ToString ()
 			+ "\t[#Islands]\t\t" + activeIslands.Count.ToString ()
 			+ "\n";
 

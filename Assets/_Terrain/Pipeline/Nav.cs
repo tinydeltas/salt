@@ -36,20 +36,27 @@ namespace Pipeline
 		// testing options
 		public bool testTile = false;
 		public bool testIsland = false;
+	
+		// optimization options
+		public bool runOpt = true;
+
+		[Range (5, 100)]
+		public int maxTiles = 5;
 
 		//==============================================
 		// PRIVATE VARIABLES
 	
-		private static Dictionary<Vector3, OceanTile> activeTiles = null;
-		private static Dictionary<Vector3, OceanTile> allTiles = null;
-	
-		private static OceanTile curTile = null;
+		private Dictionary<Vector3, OceanTile> activeTiles = null;
+		private Dictionary<Vector3, OceanTile> allTiles = null;
 
 		private static int totalTiles = 0;
 		private static int numActive = 0;
 
 		private Seeder seeder;
+		private Opt opt;
 		private Vector3 scale;
+
+		private OceanTile curTile = null;
 
 		//==============================================
 		// CONSTANTS
@@ -75,18 +82,20 @@ namespace Pipeline
 
 		void OnEnable ()
 		{
-			seeder = new Seeder (islandDensity);
-			activeTiles = new Dictionary<Vector3, OceanTile> ();
-			allTiles = new Dictionary<Vector3, OceanTile> ();
+			this.seeder = new Seeder (islandDensity);
+			this.opt = new Opt (maxTiles); 
+
+			this.activeTiles = new Dictionary<Vector3, OceanTile> ();
+			this.allTiles = new Dictionary<Vector3, OceanTile> ();
 
 			// allocate initial tile
 			Transform t = GetComponent<Transform> (); 
 
 			// this will introduce an exception and make the first tile set at (0, 0)
 			OceanTile firstTile = addUnexploredTile (GetTileKey (t.position));
-			curTile = firstTile;
 
-			scale = new Vector3 (minIslandSize, islandHeight, minIslandSize);
+			this.curTile = firstTile;
+			this.scale = new Vector3 (minIslandSize, islandHeight, minIslandSize);
 			_debug ("Initialized");
 		}
 	
@@ -98,17 +107,35 @@ namespace Pipeline
 			// update current tile if needed and display its neighborhood
 			if (curTile == null || !curTile.inTile (position)) {
 				Vector3 key = GetTileKey (position);
+//				__runOpt (key);
 
 				_debug ("[update] In new tile, updating curTile with key: " + key);
 			
 				// get the new tile 
-				OceanTile tile; 
-				if (!activeTiles.ContainsKey (key)) {
-					tile = addUnexploredTile (position);
-				} else {
-					tile = activeTiles [key];
-				}
+				OceanTile tile = activeTiles.ContainsKey (key) ? activeTiles [key] 
+					: addUnexploredTile (position);
+
 				curTile = tile;
+			}
+		}
+
+		private void __runOpt (Vector3 key)
+		{
+			if (!runOpt)
+				return;
+
+			// register tile in optimization module 
+			opt.UpdateCache (key); 
+			List<Vector3> cleanups = opt.ClearCache ();
+
+			foreach (Vector3 v in cleanups) {
+				_debug ("[runOpt] destroying tile: " + v.ToString ());
+				Destroy (GameObject.Find (__conObjectName ("Tile", key)));
+				allTiles [v] = null;
+				if (!activeTiles.Remove (v)) {
+					Debug.LogError ("Coordinate " + v.ToString () + "should be in list of active tiles");
+					// this should not throw an error
+				}
 			}
 		}
 
@@ -126,7 +153,7 @@ namespace Pipeline
 					// only make new tile if it's an edge case 
 					t = addNeighborTile (curTile, d);
 				} else {
-					t = curTile.activeNeighbors [d];
+					t = allTiles [init];
 				}
 			} else {
 				// the original! 
@@ -157,23 +184,12 @@ namespace Pipeline
 			Vector3 init = GetNeighborTileKey (orig.Coor, d);
 
 			if (curTile != null && curTile.Coor == init) {
-				// make sure this is reall....
-				// don't need to make new plane, it already exists
-				orig.AddNeighbor (d, curTile);
 				return curTile; 
 			} else if (allTiles.ContainsKey (init)) {
-				// quick indexing 
-				OceanTile exists = allTiles [init];
-				orig.AddNeighbor (d, exists); 
-				return exists;
+				return allTiles [init];
 			}
 
-			OceanTile t = __newTile (init);
-
-			t.AddNeighbor (oppositeDir (d), orig);
-			orig.AddNeighbor (d, t);
-
-			return t;
+			return  __newTile (init);
 		}
 
 		//==============================================
@@ -190,14 +206,14 @@ namespace Pipeline
 			__transform ("Tile", convertToAbsCoords (t.Coor), t.Scale, plane);
 
 			// initialize and display islands associated with tile
-			LinkedList<Vector3> islePos = seeder.Seed (t.Coor, t.Size);
+			List<Vector3> islePos = seeder.Seed (t.Coor, t.Size);
 
 			Color baseColor = waterColor; 
 			foreach (Vector3 p in islePos) {
 				_debug ("[init] Received isle pos: " + p.ToString ());
 
 				Island i = new Island (p, scale);
-				t.activeIslands.AddFirst (i);  
+				t.activeIslands.Add (i);  
 
 				// display island
 				GameObject islandObj = __newIsland (i);
@@ -225,6 +241,7 @@ namespace Pipeline
 				Vector3 pos = plane.transform.position; 
 				plane.transform.position = new Vector3 (pos.x, -1f, pos.z);
 
+				// we don't want meshrenderer to mess things up
 				Destroy (plane.GetComponent<MeshRenderer> ());
 
 				// set the ocean tile as child to keep the inspector clean
@@ -266,12 +283,9 @@ namespace Pipeline
 		private GameObject __createObjWithMesh (Mesh m)
 		{
 			GameObject obj = new GameObject (); 
-			obj.AddComponent<MeshCollider> (); 
-			obj.AddComponent<MeshFilter> (); 
-
-			obj.GetComponent<MeshCollider> ().sharedMesh = m;
-			obj.GetComponent<MeshFilter> ().mesh = m;
-
+			obj.AddComponent<MeshCollider> ().sharedMesh = m;
+			obj.AddComponent<MeshFilter> ().mesh = m;
+		
 			obj.AddComponent<MeshRenderer> ();
 
 			return obj;
@@ -279,7 +293,7 @@ namespace Pipeline
 
 		private void __transform (string name, Vector3 coords, Vector3 scale, GameObject obj)
 		{
-			obj.name = name + " " + totalTiles.ToString ();
+			obj.name = __conObjectName (name, coords);
 			obj.transform.position = coords;
 			obj.transform.localScale = scale;
 		}
@@ -294,6 +308,11 @@ namespace Pipeline
 			WaterBase w = water.GetComponent<WaterBase> (); 
 			w.sharedMaterial.SetColor ("_BaseColor", b); 
 			w.sharedMaterial.SetColor ("_ReflectionColor", reflection); 
+		}
+
+		private string __conObjectName (string name, Vector3 coords)
+		{
+			return name + " " + coords.ToString ();
 		}
 
 		//==============================================
@@ -325,11 +344,6 @@ namespace Pipeline
 		{
 			return new Vector3 (pos.x + tileSize / 2f, pos.y, pos.z + tileSize / 2f);
 
-		}
-
-		private Vector2 oppositeDir (Vector2 vec)
-		{
-			return new Vector2 (vec.x * -1, vec.y * -1); 
 		}
 
 		private Vector2 getDirFromVec (Vector3 pos1, Vector3 pos2)
