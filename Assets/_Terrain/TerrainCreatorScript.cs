@@ -118,7 +118,7 @@ public class TerrainCreatorScript : MonoBehaviour
 		pos.y = island_level;
 	
 		t.resolution = resolution; 
-		t.noiseRatios = ratios;
+//		t.noiseRatios = ratios;
 //		t.Coloring = coloring;
 
 		//todo: update persistence, size, etc 

@@ -6,15 +6,6 @@ namespace NoiseLib
 {
 	public class Constants
 	{
-		public static IHeightMappable<Vector2>[] MappableClasses = {
-			new ExpNoise (), 
-			new PerlinNoise (), 
-			new ValueNoise ()
-		};
-			
-		public static MeshNoise[] OtherClasses = {
-			new DiamondSquare ()
-		};
 			
 		public static int hashMask = 255;
 		public static int hashMask2D = 7;
@@ -62,6 +53,16 @@ namespace NoiseLib
 			81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157,
 			184, 84, 204, 176, 115, 121, 50, 45, 127,  4, 150, 254, 138, 236, 205, 93,
 			222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
+		};
+
+		public static IHeightMappable<Vector2>[] MappableClasses = {
+			new ExpNoise (), 
+			new PerlinNoise (), 
+			new ValueNoise ()
+		};
+
+		public static MeshNoise[] OtherClasses = {
+			new DiamondSquare ()
 		};
 	}
 }

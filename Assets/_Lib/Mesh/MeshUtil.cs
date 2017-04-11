@@ -27,13 +27,15 @@ namespace MeshLib
 			Vector3[] norms = new Vector3[numVerts]; 
 			Color[] colors = new Color[numVerts];
 
+			Color c = Color.clear;
+			Vector3 up = Vector3.up;
 			int v = 0; // vertex enumerator 
 			float u = 1f / resolution;
 			for (int i = 0; i <= resolution; i++) {
 				for (int j = 0; j <= resolution; j++) {
 					verts [v] = new Vector3 (j * u - 0.5f, 0f, i * u - 0.5f); 
-					norms [v] = Vector3.up;
-					colors [v] = Color.clear;
+					norms [v] = up;
+					colors [v] = c;
 					uv [v] = new Vector2 (j * u, i * u);
 
 					v++;

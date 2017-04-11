@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Seeder
 {
+	List<Vector3> seeds = new List<Vector3> ();
+
 	//==============================================
 	// CONSTRUCTOR
 
@@ -30,11 +32,12 @@ public class Seeder
 	{
 		_debug ("Seeding new islands");
 
+		seeds.Clear ();
+
 		Vector3 randPos = pos; 
 		randPos.x += Random.Range (0, range); 
 		randPos.z += Random.Range (0, range); 
 
-		List<Vector3> seeds = new List<Vector3> (); 
 
 		while (Mathf.PerlinNoise (randPos.x, randPos.z) > (1f - Density)) { 
 			seeds.Add (randPos);

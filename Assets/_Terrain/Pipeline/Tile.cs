@@ -29,6 +29,8 @@ namespace Pipeline
 		// generate random ID (might be useful later on?)
 		private System.Guid id = System.Guid.NewGuid ();
 
+		private bool debug = false;
+
 		//==============================================
 		// CONSTRUCTOR
 
@@ -79,12 +81,6 @@ namespace Pipeline
 		//==============================================
 		// UTIL
 
-		// checks whether a loc is in tile
-		public bool inTile (Vector3 loc)
-		{
-			return loc.x >= Coor.x && loc.x < (Coor.x + Size) &&
-			loc.z >= Coor.z && loc.z < (Coor.z + Size);
-		}
 
 		//==============================================
 		// DOCUMENTATION AND DEBUGGING
@@ -105,8 +101,10 @@ namespace Pipeline
 
 		public void _debug (string message)
 		{
-			Debug.Log ("[Tile log]\t\t" + message);
-			Debug.Log (this.ToString ());
+			if (debug) {
+				Debug.Log ("[Tile log]\t\t" + message);
+				Debug.Log (this.ToString ());
+			}
 		}
 	}
 

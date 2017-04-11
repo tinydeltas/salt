@@ -57,6 +57,7 @@ namespace Pipeline
 		private Vector3 scale;
 
 		private OceanTile curTile = null;
+		private bool debug = false;
 
 		//==============================================
 		// CONSTANTS
@@ -105,7 +106,7 @@ namespace Pipeline
 			Vector3 position = GetComponent<Transform> ().position;
 
 			// update current tile if needed and display its neighborhood
-			if (curTile == null || !curTile.inTile (position)) {
+			if (curTile == null || !inTile (curTile.Coor, position)) {
 				Vector3 key = GetTileKey (position);
 //				__runOpt (key);
 
@@ -170,15 +171,14 @@ namespace Pipeline
 				addNeighborTile (t, OceanTile.DirVecs [direction]);
 			}
 				
-			_debug ("New tile added: " + t.ToString ());
+			_debug ("New tile added");
 			return t;
 		}
 
 		// create and link a new tile to its neighbor based on its direction
 		private OceanTile addNeighborTile (OceanTile orig, Vector2 d)
 		{
-			_debug ("[addNeighborTile] adding neighbor for" + orig.ToString ()
-			+ " with direction " + d);	 
+			_debug ("[addNeighborTile] adding neighbor "); 
 			
 			// get prospective key 
 			Vector3 init = GetNeighborTileKey (orig.Coor, d);
@@ -214,16 +214,12 @@ namespace Pipeline
 
 				Island i = new Island (p, scale);
 				t.activeIslands.Add (i);  
-
-				// display island
-				GameObject islandObj = __newIsland (i);
-
-				// make the parent of tile gameobject
-				__setAsParent (islandObj, plane);
-
 				// change the color of the water around the island
 				baseColor = i.Coloring.colorKeys [4].color; // todo? 
 				baseColor.a = 0.15f;
+
+				// display island
+				StartCoroutine(__newIsland(i)); 
 			}
 
 			if (testTile) {
@@ -257,7 +253,7 @@ namespace Pipeline
 			return t;
 		}
 
-		private GameObject __newIsland (Island i)
+		private IEnumerator __newIsland (Island i)
 		{
 			GameObject obj;
 			if (testIsland) {
@@ -266,14 +262,19 @@ namespace Pipeline
 			} else {
 				_debug ("Adding new island");
 				Mesh m = i.CreateAndDisplayIsland (); 
+
 				// create empty game object 
 				obj = __createObjWithMesh (m);
 			}
 
-			obj.GetComponent<MeshRenderer> ().material = i.material;
 			__transform ("island", i.Loc, i.Scale, obj); 
 
-			return obj;
+			// make the parent of tile gameobject
+//			__setAsParent (obj, newObj);
+
+			obj.GetComponent<MeshRenderer> ().material = i.material;
+			yield return null;
+	
 		}
 
 
@@ -285,7 +286,6 @@ namespace Pipeline
 			GameObject obj = new GameObject (); 
 			obj.AddComponent<MeshCollider> ().sharedMesh = m;
 			obj.AddComponent<MeshFilter> ().mesh = m;
-		
 			obj.AddComponent<MeshRenderer> ();
 
 			return obj;
@@ -296,6 +296,7 @@ namespace Pipeline
 			obj.name = __conObjectName (name, coords);
 			obj.transform.position = coords;
 			obj.transform.localScale = scale;
+
 		}
 
 		private void __setAsParent (GameObject child, GameObject parent)
@@ -317,6 +318,14 @@ namespace Pipeline
 
 		//==============================================
 		// UTIL
+
+
+		// checks whether a loc is in tile
+		public bool inTile (Vector3 Coor, Vector3 loc)
+		{
+			return loc.x >= Coor.x && loc.x < (Coor.x + tileSize) &&
+				loc.z >= Coor.z && loc.z < (Coor.z + tileSize);
+		}
 
 		private bool isCornerDir (Vector2 v)
 		{ 
@@ -373,8 +382,10 @@ namespace Pipeline
 
 		public void _debug (string message)
 		{
-			Debug.Log ("[Nav log]\t\t" + message);
-			Debug.Log (this.ToString ());
+			if (debug) {
+				Debug.Log ("[Nav log]\t\t" + message);
+				Debug.Log (this.ToString ());
+			}
 		}
 	}
 }

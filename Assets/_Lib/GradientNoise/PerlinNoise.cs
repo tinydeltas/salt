@@ -28,21 +28,21 @@ namespace NoiseLib
 			new int[]{ 0, -1, -1 }
 		};
 
+		// get shared & individual constants 
+		int[] h = Constants.hash;
+		int[][] g = Constants.gradients2D; 
+
+		int m = Constants.hashMask;
+		int gm = Constants.hashMask2D;
+
+		float n = Constants.normFactor;
+
 		// 2D Perlin noise
 		public float noise (Vector2 p)
 		{
-			// get shared & individual constants 
-			int[] h = Constants.hash;
-			int[][] g = Constants.gradients2D; 
-
-			int m = Constants.hashMask;
-			int gm = Constants.hashMask2D;
-
-			float n = Constants.normFactor;
-
 			// get int base 
-			int x0 = M.Floor (p.x); 
-			int y0 = M.Floor (p.y); 
+			int x0 = Mathf.FloorToInt (p.x); 
+			int y0 = Mathf.FloorToInt (p.y); 
 
 			// get displacements
 			float dx0 = p.x - x0; 
@@ -78,16 +78,16 @@ namespace NoiseLib
 			float x00 = M.Dot (_x00, dx0, dy0);     // u = p dot h[p_00]
 			float x10 = M.Dot (_x10, dx1, dy0); 	   // v = p dot h[_10]
 
-			float p1 = M.Lerp (x00, x10, dx0); 
+			float p1 = Mathf.Lerp (x00, x10, dx0); 
 
 			int[] _x01 = g [h [_01] & gm]; 
 			int[] _x11 = g [h [_11] & gm]; 
 			float x01 = M.Dot (_x01, dx0, dy1);
 			float x11 = M.Dot (_x11, dx1, dy1); 
 
-			float p2 = M.Lerp (x01, x11, dx0);
+			float p2 = Mathf.Lerp (x01, x11, dx0);
 	 
-			float t0 = M.Lerp (p1, p2, dy0); 
+			float t0 = Mathf.Lerp (p1, p2, dy0); 
 			float prod = t0 * n; 
 
 			return prod * 0.5f;

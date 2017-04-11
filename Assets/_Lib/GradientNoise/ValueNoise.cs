@@ -7,16 +7,16 @@ namespace NoiseLib
 {
 	public class ValueNoise : IHeightMappable<Vector2>
 	{
+		// get constants 
+		int[] h = Constants.hash;
+		int m = Constants.hashMask;
+
 		// 2D noise
 		public float noise (Vector2 p)
 		{
-			// get constants 
-			int[] h = Constants.hash;
-			int m = Constants.hashMask;
-
-			// get int version 
-			int x0 = M.Floor (p.x); 
-			int y0 = M.Floor (p.y); 
+			// get int version
+			int x0 = Mathf.FloorToInt (p.x); 
+			int y0 = Mathf.FloorToInt (p.y); 
 
 			// get starting displacements
 			float dx = p.x - x0; 
@@ -44,9 +44,9 @@ namespace NoiseLib
 			dy = M.Fade (dy); 
 
 			// interpolate between the relative points on a 2-d plane
-			float t1 = M.Lerp (_00, _10, dx); 
-			float t2 = M.Lerp (_01, _11, dx); 
-			float z = M.Lerp (t1, t2, dy); 
+			float t1 = Mathf.Lerp (_00, _10, dx); 
+			float t2 = Mathf.Lerp (_01, _11, dx); 
+			float z = Mathf.Lerp (t1, t2, dy); 
 
 			// normalize the restult 
 			float prod = z * (1f / m);

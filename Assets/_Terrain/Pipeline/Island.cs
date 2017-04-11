@@ -16,7 +16,7 @@ namespace Pipeline
 
 		private MaskMethod Mask;
 		private static float islandLevel = -1f;
-	
+		private bool debug = false;
 		//==============================================
 		// CONSTRUCTOR
 
@@ -24,9 +24,9 @@ namespace Pipeline
 		public Island (Vector3 init, 
 		               Vector3 scale, 
 		               Material mat = null,  
-		               float[] ratios = null, 
+		               IHeightMappable<Vector2> method = null, 
 		               MeshLib.MaskMethod m = null)
-			: base (init, scale, mat, ratios)
+			: base (init, scale, mat, method)
 		{
 			// adjust the y coordinate of the island
 			this.Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
@@ -84,9 +84,11 @@ namespace Pipeline
 		new
 		public void _debug (string message)
 		{
-			Debug.Log ("[Island log] " + message);
-			Debug.Log (this.ToString ());
-			Debug.Log ("[Terrain info] " + base.ToString ());
+			if (debug) {
+				Debug.Log ("[Island log] " + message);
+				Debug.Log (this.ToString ());
+				Debug.Log ("[Terrain info] " + base.ToString ());
+			}
 		}
 	}
 }

@@ -13,13 +13,13 @@ namespace TerrainLib
 		//==============================================
 		// CONSTANTS
 
-		private float[] defRatio = new float[]{ 0.9f, 0.2f, 0f };
-
 		//==============================================
 		// PRIVATE VARIABLES
 
 		private static float sizeFactor = 10f;
-		private static float noiseRange = 0.2f;
+		private IHeightMappable<Vector2> method;  
+
+		private bool debug = false;
 
 		//==============================================
 		// supposed to be private (todo)
@@ -37,11 +37,11 @@ namespace TerrainLib
 		public GenericTerrain (Vector3 init,
 		                       Vector3 scale, 
 		                       Material mat = null, 
-		                       float[] ratios = null)
+			IHeightMappable<Vector2> method = null)
 		{
+			this.method = method != null ? method : Constants.MappableClasses [0];
 			this.material = mat != null ? mat : new Material (Shader.Find ("TerrainShader"));
-			this.noiseRatios = ratios != null ? ratios : defRatio;
-
+	
 			this.Loc = init;
 			this.Scale = new Vector3 (
 				scale.x + GetDimensions (scale.x / sizeFactor), 
@@ -63,9 +63,10 @@ namespace TerrainLib
 		public Vector3 Scale { get; set; }
 
 		// relative noise ratios
-		public float[] noiseRatios { get; set ; }
+//		public float[] noiseRatios { get; set ; }
 
 		// PRIVATE SET
+
 
 		// center, absolute coordinates on world map
 		public Vector3 Loc { get; protected set; }
@@ -95,7 +96,7 @@ namespace TerrainLib
 			Vector3[] vecs = MeshUtil.Constants.UnitVectors2D;
 
 			// extract parameters 
-			IHeightMappable<Vector2>[] cls = NoiseLib.Constants.MappableClasses;
+//			IHeightMappable<Vector2>[] cls = NoiseLib.Constants.MappableClasses;
 			float dx = 1f / resolution;
 
 			if (coloring == null) {
@@ -109,10 +110,6 @@ namespace TerrainLib
 			int v = 0; 
 
 			// make unique noiseRatios for this island
-			noiseRatios = new float[defRatio.Length]; 
-			for (int i = 0; i < defRatio.Length; i++) {
-				noiseRatios [i] = Mathf.Min (1f, defRatio [i] + GetDimensions (noiseRange));
-			}
 
 			Color[] colors = this.Mesh.colors;
 			Vector3[] vertices = this.Mesh.vertices;
@@ -122,16 +119,17 @@ namespace TerrainLib
 				Vector3 p1 = Vector3.Lerp (vecs [1], vecs [3], i * dx); 
 
 				for (int j = 0; j <= resolution; j++) {
+
 					Vector3 p = Vector3.Lerp (p0, p1, j * dx);
 					Vector3 n = new Vector3 (p.x + Loc.x, p.y + Loc.z);
 
-					float height = genNoise (cls, n);
+					float height = genNoise (method, n);
 
 					// apply maske
 					height = MeshLib.Mask.Transform (p, height, mask);
 
 					// readjust height to find color
-					float modified = Mathf.Min (height + 0.5f, 1f);
+					float modified = height + 0.5f;
 					Color newColor = coloring.Evaluate (modified);
 
 					colors [v] = newColor;
@@ -163,34 +161,31 @@ namespace TerrainLib
 			this.Mesh.RecalculateNormals (); 
 		}
 
-		private float genNoise (IHeightMappable<Vector2>[] cls, Vector3 point)
+		private float genNoise (IHeightMappable<Vector2> method, Vector3 point)
 		{
 			float finalHeight = 0f;
 	
-			for (int i = 0; i < cls.Length; i++) {
-				if (noiseRatios [i] == 0f) {
-					continue;
-				}
-				finalHeight += noiseWithOctaves (cls [i], point, octaves, frequency, lacunarity, persistence) * noiseRatios [i];
-			}
+			finalHeight += noiseWithOctaves (method, point);
 			return finalHeight;
 		}
 
-		private float noiseWithOctaves (IHeightMappable<Vector2> cl, Vector3 point, int octaves, float freq, float lacuna, float persist)
+		private float noiseWithOctaves (IHeightMappable<Vector2> cl, Vector3 point)
 		{
+			float freq = frequency;
 			float sum = cl.noise (point * freq);
 
 			float amplitude = 1f;
 			float range = 1f;
 
 			for (int o = 1; o < octaves; o++) {
-				freq *= lacuna;
-				amplitude *= persist;
+				freq *= lacunarity;
+				amplitude *= persistence;
 				range += amplitude;
 				sum += cl.noise (point * freq) * amplitude;
 			}
 			return sum / range;
 		}
+
 
 		//==============================================
 		// TERRAIN LIFECYCLE OPERATIONS
@@ -264,9 +259,11 @@ namespace TerrainLib
 		}
 
 		public void _debug (string message)
-		{
-			Debug.Log ("[GenericTerrain log]\t\t" + message);
-			Debug.Log (this.ToString ());
+		{ 
+			if (debug) {
+				Debug.Log ("[GenericTerrain log]\t\t" + message);
+				Debug.Log (this.ToString ());
+			}
 		}
 	}
 }
