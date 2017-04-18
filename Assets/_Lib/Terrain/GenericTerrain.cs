@@ -6,6 +6,7 @@ using NoiseLib;
 using MeshLib;
 using Util;
 using MaterialLib;
+using TextureLib;
 
 namespace TerrainLib
 {
@@ -32,12 +33,12 @@ namespace TerrainLib
 		// CONSTRUCTOR
 
 		public GenericTerrain (Vector3 init,
-		                       Vector3 scale, 
-		                       Material mat = null, 
+		                       Vector3 scale,  
 			IHeightMappable<Vector2> method = null)
 		{
 			this.Method = method != null ? method : Constants.MappableClasses [0];
-			this.Material = mat != null ? mat : MaterialController.GenRandom ();
+			this.Material = MaterialController.GenRandom ();
+			this.TextureGen = TextureController.RandomTextureBuilder ();
 	
 			this.Loc = init;
 			this.Scale = new Vector3 (
@@ -60,13 +61,17 @@ namespace TerrainLib
 		public Vector3 Scale { get; set; }
 
 		// noise method used 
-		public IHeightMappable<Vector2> Method {get; private set; }
+		public IHeightMappable<Vector2> Method {get; protected set; }
 
 		// center, absolute coordinates on world map
 		public Vector3 Loc { get; protected set; }
 
 		// material of the island
-		public Material Material { get; private set; }
+		public Material Material { get; protected set; }
+
+		// texture used in rendering the island
+		public Texture2D Texture { get; protected set;  }
+		public TextureBuilder TextureGen { get ; protected set; }
 
 		// island mesh
 		public Mesh Mesh { get; private set; }
@@ -100,8 +105,6 @@ namespace TerrainLib
 			// counter for vertices
 			int v = 0; 
 
-			// make unique noiseRatios for this island
-
 			Color[] colors = this.Mesh.colors;
 			Vector3[] vertices = this.Mesh.vertices;
 
@@ -110,8 +113,10 @@ namespace TerrainLib
 				Vector3 p1 = Vector3.Lerp (vecs [1], vecs [3], i * dx); 
 
 				for (int j = 0; j <= resolution; j++) {
-
+					// localposition
 					Vector3 p = Vector3.Lerp (p0, p1, j * dx);
+
+					// adjusted for global position
 					Vector3 n = new Vector3 (p.x + Loc.x, p.y + Loc.z);
 
 					float height = genNoise (n);
@@ -126,10 +131,16 @@ namespace TerrainLib
 					colors [v] = newColor;
 					vertices [v].y = height;
 
+					// set the texture 
+					Color c = TextureGen.gen(n);
+					this.Texture.SetPixel(i, j, c);
+
 					v++;
 				}
 			}
-	
+
+			// update texture 
+			this.Texture.Apply();
 			this.Mesh.vertices = vertices;
 			this.Mesh.colors = colors;
 			this.Mesh.RecalculateNormals (); 

@@ -39,6 +39,7 @@ namespace Pipeline
 		// testing options
 		public bool testTile = false;
 		public bool testIsland = false;
+		public bool testTexture = true;
 	
 		// optimization options
 		public bool runOpt = true;
@@ -280,6 +281,10 @@ namespace Pipeline
 //			__setAsParent (obj, newObj);
 
 			obj.GetComponent<MeshRenderer> ().material = i.Material;
+
+			if (testTexture) {
+				obj.GetComponent<MeshRenderer> ().material.mainTexture = i.Texture;
+			}
 			yield return null;
 		}
 

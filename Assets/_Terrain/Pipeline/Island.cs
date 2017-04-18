@@ -24,10 +24,9 @@ namespace Pipeline
 		// creates a random island given a few parameters
 		public Island (Vector3 init, 
 		               Vector3 scale, 
-		               Material mat = null,  
 		               IHeightMappable<Vector2> method = null, 
 		               MeshLib.MaskMethod m = null)
-			: base (init, scale, mat, method)
+			: base (init, scale, method)
 		{
 			// adjust the y coordinate of the island
 			this.Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 

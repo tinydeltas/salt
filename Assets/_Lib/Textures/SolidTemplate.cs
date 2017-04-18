@@ -4,10 +4,12 @@ using UnityEngine;
 
 namespace TextureLib
 {
-	class CellularTemplate : TextureBuilder
+	public class SolidTemplate : TextureBuilder
 	{
-		public Color gen (Vector3 pos) {
+		public Color gen (Vector3  pos)
+		{
 			return Color.blue;
+
 		}
 
 	}
