@@ -132,7 +132,7 @@ namespace TerrainLib
 					vertices [v].y = height;
 
 					// set the texture 
-					Color c = TextureGen.gen(n);
+					Color c = TextureGen.gen(p);
 					this.Texture.SetPixel(i, j, c);
 
 					v++;

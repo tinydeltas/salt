@@ -9,7 +9,7 @@ namespace TextureLib
 	public enum TextureTypes
 	{
 		Solid,
-		Cellular,
+		Cellular, 
 	};
 
 	public interface TextureBuilder
@@ -20,8 +20,8 @@ namespace TextureLib
 	public class TextureController
 	{
 		public static TextureBuilder[] TextureClasses = {
-			new CellularTemplate (), 
 			new SolidTemplate (), 
+			new CellularTemplate (),
 		};
 
 		public static TextureBuilder RandomTextureBuilder ()

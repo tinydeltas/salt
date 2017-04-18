@@ -192,7 +192,7 @@ namespace Pipeline
 			Vector3 init = GetNeighborTileKey (orig, d);
 
 			if (curTile != Vector3.one && curTile == init) {
-				return allTiles[curTile]; 
+				return allTiles [curTile]; 
 			} else if (allTiles.ContainsKey (init)) {
 				return allTiles [init];
 			}
@@ -283,11 +283,12 @@ namespace Pipeline
 			obj.GetComponent<MeshRenderer> ().material = i.Material;
 
 			if (testTexture) {
+				i.Texture.filterMode = FilterMode.Trilinear; 
+				i.Texture.wrapMode = TextureWrapMode.Clamp;
 				obj.GetComponent<MeshRenderer> ().material.mainTexture = i.Texture;
 			}
 			yield return null;
 		}
-
 
 		//==============================================
 		// UNITY ENGINE UTIL
@@ -323,7 +324,6 @@ namespace Pipeline
 
 		private string __conObjectName (string name, Vector3 coords)
 		{
-			
 			return name + " " + coords.ToString ();
 		}
 
@@ -363,7 +363,6 @@ namespace Pipeline
 		private Vector3 convertToAbsCoords (Vector3 pos)
 		{
 			return new Vector3 (pos.x + tileSize / 2f, pos.y, pos.z + tileSize / 2f);
-
 		}
 
 		private Vector2 getDirFromVec (Vector3 pos1, Vector3 pos2)
@@ -372,7 +371,8 @@ namespace Pipeline
 				(pos1.z - pos2.z) / tileSize);
 		}
 
-		private void turnAllDebugOff() {
+		private void turnAllDebugOff ()
+		{
 			OceanTile.debug = false;
 			Seeder.debug = false; 
 			Island.debug = false; 

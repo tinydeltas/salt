@@ -6,6 +6,11 @@ namespace Util
 {
 	class Math
 	{
+		// basic hash function 
+//
+//		public static int hash (Vector3 pos) {
+//			int partial = 541 * pos.x + 79 * pos.y + 31 * pos.z;
+//		}
 		// for 2d vectors
 		public static float Dot (Vector2 vec1, Vector2 vec2)
 		{

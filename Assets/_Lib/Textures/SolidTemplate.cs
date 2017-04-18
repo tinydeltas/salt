@@ -9,7 +9,6 @@ namespace TextureLib
 		public Color gen (Vector3  pos)
 		{
 			return Color.blue;
-
 		}
 
 	}
