@@ -6,7 +6,7 @@ namespace TextureLib
 {
 	public class SolidTemplate : TextureBuilder
 	{
-		public Color gen (Vector3  pos)
+		public Color gen (Vector3  pos, int cubeX, int cubeY)
 		{
 			return Color.blue;
 		}

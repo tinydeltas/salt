@@ -14,7 +14,7 @@ namespace TextureLib
 
 	public interface TextureBuilder
 	{
-		Color gen (Vector3 point);
+		Color gen (Vector3 point, int cubeX, int cubeY);
 	}
 
 	public class TextureController
@@ -29,11 +29,6 @@ namespace TextureLib
 			int idx = Random.Range (0, TextureClasses.Length);
 			TextureBuilder tb = TextureClasses [idx];
 			return tb;
-		}
-
-		public static Color GenColor(TextureBuilder tb, Vector3 point)
-		{
-			return tb.gen (point);
 		}
 	}
 }

@@ -10,11 +10,10 @@ namespace TextureLib
 	class CellularTemplate : TextureBuilder
 	{
 
+		public bool debug = true;
+
 		private static int numDist = 3;
-
-		private static float[] distArr;
-
-		private static uint[] probs = new uint[] {
+		private static uint[] _probs = new uint[] {
 			393325350,
 			1022645910,
 			1861739990,
@@ -25,8 +24,8 @@ namespace TextureLib
 			4203212043,
 		};
 
-		// for efficiency
-		private static float[] curPt = new float[3];
+		private static float[] probs;
+		float[] distArr = new float[numDist];
 
 		// probability lookup
 
@@ -35,137 +34,187 @@ namespace TextureLib
 			int i = 0; 
 			while (i < 8 && probs [i] < value)
 				i++;
-			
 			return i;
 		}
 
 		public CellularTemplate ()
 		{
-			distArr = new float[numDist];
-
-			for (int i = 0; i < probs.Length; i++)
-				probs [i] = probs [i] / uint.MaxValue;
+			probs = new float[_probs.Length];
+			for (int i = 0; i < _probs.Length; i++)
+				probs [i] = (float)_probs [i] / uint.MaxValue;
 		}
 
-		public Color gen (Vector3 pos)
+		public static Texture2D fillTexture(Texture2D tex, int resolution, int size, TextureBuilder tb) {
+			for (int y = 0; y < size; y++) {
+				int yAbs = y * resolution; 
+				for (int z = 0; z < size; z++) {
+					int zAbs = z * resolution;
+
+					for (int i = 0; i < resolution; i++) {
+
+						for (int j = 0; j < resolution; j++) {
+
+							Vector3 pt = new Vector3 (
+								y + ((float)i / resolution), 
+								z + ((float)j / resolution), 
+								0f);
+
+							tex.SetPixel ( 
+								yAbs + i,  
+								zAbs + j, 
+								tb.gen (pt, y, z));
+						}
+					}
+				}
+			}
+			tex.Apply ();
+			return tex;
+		}
+
+		public Color gen (Vector3 p, int cubeX, int cubeY)
 		{
 			// based on the paper 
+			int x, y, n;
+			float pX = p.x;
+			float pY = p.y;
+			float dX, dY;
 
-			// hash the cube 
-			int h = pos.ToString ().GetHashCode ();
+			reset (distArr);
 
-			// create the random number generator by seeding it with the hash 
-			Random.InitState (h); 
+			for (int a = -1; a < 2; a++) {
+				for (int b = -1; b < 2; b++) {
+					x = cubeX + a; 
+					y = cubeY + b;
 
-			// determine the number of feature points 
-			int n = probLookup (Random.value);
+					// hash the cube
+					// create the random number generator by seeding it with the hash 
+					Random.InitState ((541 * x + 79 * y) % int.MaxValue);
 
-			// for each feature point, place it in the cube 
-			for (int i = 0; i < n; i++) {
+					// determine the number of feature points 
+					n = probLookup (Random.value);
 
+					// for each feature point, place it in the cube 
+					for (int i = 0; i < n; i++) {
+						dX = x + Random.value; 
+						dY = y + Random.value;
 
-				// and find the closest feature point to the input (pos)
-				curPt [0] = pos.x + Random.value; 
-				curPt [1] = pos.y + Random.value; 
-				curPt [2] = pos.z + Random.value; 
+						// by inserting into sorted list 
 
-				float dist = randDist (pos);
-
-				// by inserting into sorted list 
-				distArr = insert (dist, distArr);
+						insert (manhattan (pX, pY, dX, dY));
+					}
+				}
 			}
-
-
+				
 			// color distance function 
-			float color = randDiff (distArr); 
-
-			if (color > 1 || color < 0) {
-				Debug.Log ("color: " + color.ToString ());
-			}
-
+			float color = cellular_4 (distArr); 
+//
+//			_debug("color: " + color.ToString ()); 
 			return new Color (color, color, color, 1);
 		}
-	
-		// insertion function
 
-		private float[] insert (float dist, float[] distArr)
+		private void reset (float[] distArr)
+		{ 
+			for (int i = 0; i < distArr.Length; i++) {
+				distArr [i] = float.MaxValue;
+			}
+		}
+
+		private static uint lcgRandom (uint lastValue)
 		{
-			int i = 0;
-			while (i < 3 && dist > distArr [i])
-				i++;
-			if (i < numDist)
-				distArr [i] = dist;
-			return distArr;
+			return (1103515245u * lastValue + 12345u) % uint.MaxValue;
+		}
+
+		// insertion function
+		private void insert (float dist)
+		{
+			float temp;
+			for (int i = distArr.Length - 1; i >= 0; i--) {
+				if (dist > distArr [i])
+					break; 
+				temp = distArr [i]; 
+				distArr [i] = dist; 
+				if (i + 1 < distArr.Length)
+					distArr [i + 1] = temp;
+			}
+				
+//			return distArr;
 		}
 		
 		// distance functions
 
 		// yay optimization
-		public delegate float distFunc (Vector3 p1);
+		//		public delegate float distFunc (float pX, float pY);
+		//
+		//		private distFunc[] DistFuncs = {
+		//			euclidian,
+		//			manhattan,
+		//		};
 
-		private distFunc[] DistFuncs = {
-			euclidian, 
-			manhattan,
-		};
+		//		private static float euclidian (float pX, float pY)
+		//		{
+		//			return Mathf.Sqrt (manhattan (pX, pY));
+		//		}
 
-		private static float euclidian (Vector3 p1)
+		private static float manhattan (float pX, float pY, float dX, float dY)
 		{
-			return Mathf.Sqrt (manhattan (p1));
+			float dx = pX - dX; 
+			float dy = pY - dY;
+
+			return dx * dx + dy * dy;
 		}
 
-		private static float manhattan (Vector3 p1)
-		{
-			float dx = p1.x - curPt [0]; 
-			float dy = p1.y - curPt [1];
-			float dz = p1.z - curPt [2];
-			return dx*dx + dy*dy + dz*dz;
-		}
-
-		private float randDist (Vector3 p1)
-		{
-//			int idx = Random.Range (0, DistFuncs.Length);
-			return DistFuncs [1] (p1);
-		}
-
+		//		private float randDist (float pX, float pY)
+		//		{
+		////			int idx = Random.Range (0, DistFuncs.Length);
+//			return DistFuncs [1] (pX, pY);
+//		}
+//
 		// combination functions
 		public delegate float combFunc (float[] dists);
 
 		private combFunc[] CombFuncs = {
-			cellular_1, 
+//			cellular_1, 
 			cellular_2, 
 			cellular_3, 
 			cellular_4
 		};
-
-		// c1 = -1
-		private static float cellular_1 (float[] dists)
-		{
-			return -1f * dists [0]; 
-		}
+//
+//		// c1 = -1
+//		private static float cellular_1 (float[] dists)
+//		{
+//			return -1 * dists [0]; 
+//		}
 
 		// c2 = 1
-		private static float cellular_2 (float[] dists)
+		public static float cellular_2 (float[] dists)
 		{
 			return dists [0];
 		}
 
 		// c3 = 1
-		private static float cellular_3 (float[] dists)
+		public static float cellular_3 (float[] dists)
 		{
 			return dists [2]; 
 		}
 
 		// c1 = -1 and c2 = 1
-		private static float cellular_4 (float[] dists)
+		public static float cellular_4 (float[] dists)
 		{
 			return -1 * dists [0] + dists [1];
 		}
 
 		private float randDiff (float[] distArr)
 		{
-//			int idx = Random.Range (0, CombFuncs.Length);
-			return CombFuncs [3](distArr); 
+			int idx = Random.Range (0, CombFuncs.Length);
+			return CombFuncs [idx] (distArr); 
 
+		}
+
+		private void _debug (string s)
+		{
+			if (debug) {
+				Debug.Log (s);
+			}
 		}
 
 	}

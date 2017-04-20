@@ -283,6 +283,7 @@ namespace Pipeline
 			obj.GetComponent<MeshRenderer> ().material = i.Material;
 
 			if (testTexture) {
+				Debug.Log ("Texture: " + i.Texture.width.ToString ());
 				i.Texture.filterMode = FilterMode.Trilinear; 
 				i.Texture.wrapMode = TextureWrapMode.Clamp;
 				obj.GetComponent<MeshRenderer> ().material.mainTexture = i.Texture;

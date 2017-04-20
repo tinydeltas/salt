@@ -39,6 +39,10 @@ namespace MaterialLib
 			return Materials [Random.Range (0, numMaterials)];
 		}
 
+		public static Material GenDefault() {
+			return Materials [0];
+		}
+
 		//==============================================
 		// MEMBERS
 

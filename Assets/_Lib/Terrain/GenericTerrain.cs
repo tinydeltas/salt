@@ -18,6 +18,7 @@ namespace TerrainLib
 		// PRIVATE VARIABLES
 
 		private static float sizeFactor = 10f; 
+		private static int defDensity = 10;
 
 		//==============================================
 		// supposed to be private (todo)
@@ -37,9 +38,11 @@ namespace TerrainLib
 			IHeightMappable<Vector2> method = null)
 		{
 			this.Method = method != null ? method : Constants.MappableClasses [0];
-			this.Material = MaterialController.GenRandom ();
-			this.TextureGen = TextureController.RandomTextureBuilder ();
-	
+			this.Material = MaterialController.GenDefault();
+			this.TextureGen = TextureController.TextureClasses [1];
+			this.TextureDensity = defDensity;
+			this.Texture = new Texture2D (resolution * TextureDensity, resolution * TextureDensity); 
+
 			this.Loc = init;
 			this.Scale = new Vector3 (
 				scale.x + GetDimensions (scale.x / sizeFactor), 
@@ -72,6 +75,7 @@ namespace TerrainLib
 		// texture used in rendering the island
 		public Texture2D Texture { get; protected set;  }
 		public TextureBuilder TextureGen { get ; protected set; }
+		public int TextureDensity { get; protected set; }  
 
 		// island mesh
 		public Mesh Mesh { get; private set; }
@@ -107,6 +111,7 @@ namespace TerrainLib
 
 			Color[] colors = this.Mesh.colors;
 			Vector3[] vertices = this.Mesh.vertices;
+			this.Texture.name = "island texture"; 
 
 			for (int i = 0; i <= resolution; i++) {
 				Vector3 p0 = Vector3.Lerp (vecs [0], vecs [2], i * dx); 
@@ -131,16 +136,14 @@ namespace TerrainLib
 					colors [v] = newColor;
 					vertices [v].y = height;
 
-					// set the texture 
-					Color c = TextureGen.gen(p);
-					this.Texture.SetPixel(i, j, c);
-
 					v++;
 				}
 			}
 
 			// update texture 
-			this.Texture.Apply();
+			this.Texture = CellularTemplate.fillTexture (this.Texture, 
+				this.resolution, this.TextureDensity, this.TextureGen);
+			
 			this.Mesh.vertices = vertices;
 			this.Mesh.colors = colors;
 			this.Mesh.RecalculateNormals (); 

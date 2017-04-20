@@ -1,20 +1,24 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Terrain/Pipeline/Nav.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/_Lib/Textures/CellularTemplate.cs">
     <Files>
-      <File FileName="Assets/_Terrain/Pipeline/Island.cs" Line="78" Column="17" />
-      <File FileName="Assets/_Terrain/Pipeline/Nav.cs" Line="252" Column="22" />
-      <File FileName="Assets/_Terrain/Pipeline/Seeder.cs" Line="7" Column="33" />
-      <File FileName="Assets/_Lib/Terrain/GenericTerrain.cs" Line="108" Column="32" />
-      <File FileName="Assets/_Lib/Mesh/MeshUtil.cs" Line="8" Column="3" />
-      <File FileName="Assets/_Materials/MaterialController.cs" Line="30" Column="75" />
-      <File FileName="Assets/_Lib/Aging/AgingController.cs" Line="4" Column="34" />
-      <File FileName="Assets/_Terrain/Pipeline/Tile.cs" Line="22" Column="15" />
-      <File FileName="Assets/_Terrain/Pipeline/Opt.cs" Line="72" Column="11" NotebookId="1" />
+      <File FileName="Assets/_Terrain/Pipeline/Nav.cs" Line="289" Column="49" />
+      <File FileName="Assets/_Terrain/Pipeline/Island.cs" Line="1" Column="1" />
+      <File FileName="Assets/_Lib/GradientNoise/IHeightMappable.cs" Line="1" Column="1" />
+      <File FileName="Assets/_Lib/Textures/SolidTemplate.cs" Line="14" Column="3" />
+      <File FileName="Assets/_Lib/Util/Math.cs" Line="1" Column="1" />
+      <File FileName="Assets/_Lib/Terrain/GenericTerrain.cs" Line="90" Column="4" />
+      <File FileName="Assets/_Lib/Textures/CellularShader.shader" Line="32" Column="44" />
+      <File FileName="Assets/_Lib/Textures/CellularTemplate.cs" Line="48" Column="29" />
+      <File FileName="Assets/_Materials/MaterialController.cs" Line="24" Column="4" />
+      <File FileName="Assets/_Lib/Textures/TextureController.cs" Line="29" Column="26" NotebookId="1" />
+      <File FileName="Assets/_Terrain/TextureScript.cs" Line="30" Column="57" NotebookId="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="/Users/lazuli/Sync/spring17/cs490/valence/Assets/_Lib/Util/Math.cs" line="13" column="1" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>
