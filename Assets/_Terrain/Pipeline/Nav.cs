@@ -4,8 +4,10 @@ using UnityEngine;
 
 using UnityStandardAssets.Water;
 
+using NoiseLib;
 using MeshLib;
 using MaterialLib;
+using TextureLib;
 
 namespace Pipeline
 {
@@ -16,9 +18,9 @@ namespace Pipeline
 
 		//==============================================
 		// SCRIPT OPTIONS
-		public NeighborType type = NeighborType.Complete;
+		public NeighborType neighborType = NeighborType.Complete;
 
-		// size options
+		[Header ("nav / world options")]
 		[Range (50, 500)] 
 		public float tileSize = 250f;
 
@@ -31,25 +33,34 @@ namespace Pipeline
 		[Range (1, 500)]
 		public float islandHeight = 150f;
 
-		// color options
-		private static Color oceanColor = new Color ((float)50 / 255, (float)197 / 255, (float)213 / 255, 0.4f);
-		private static Color refractColor = new Color ((float)225 / 255, (float)165 / 255, (float)190 / 255, 0.4f);
-		public Color waterColor = oceanColor;
-
-		// testing options
-		public bool testTile = false;
-		public bool testIsland = false;
-		public bool testTexture = true;
-	
-		// optimization options
+		[Header ("optimization options")]
 		public bool runOpt = true;
 
 		[Range (5, 100)]
 		public int maxTiles = 5;
 
+		[Header ("noise options")]
+		public Constants.MappableTypes noiseType = 
+			NoiseLib.Constants.MappableTypes.Exp;
+		private static IHeightMappable<Vector2> method; 
+
+		[Header ("texture options")]
+		public TextureTypes textureType = TextureTypes.Cellular; 
+		public int textureDensity = 10;
+
+		// color options
+		private static Color oceanColor = new Color ((float)50 / 255, (float)197 / 255, (float)213 / 255, 0.4f);
+		private static Color refractColor = new Color ((float)225 / 255, (float)165 / 255, (float)190 / 255, 0.4f);
+		public Color waterColor = oceanColor;
+
+		[Header ("testing options")]
+		public bool testTile = false;
+		public bool testIsland = false;
+		public bool testTexture = true;
+
 		//==============================================
 		// PRIVATE VARIABLES
-	
+		private List<Island> queuedIslands = null;
 		private Dictionary<Vector3, OceanTile> activeTiles = null;
 		private Dictionary<Vector3, OceanTile> allTiles = null;
 
@@ -57,7 +68,6 @@ namespace Pipeline
 		private static int numActive = 0;
 
 		private Vector3 scale;
-
 		private Vector3 curTile = Vector3.one;
 
 		//==============================================
@@ -86,14 +96,18 @@ namespace Pipeline
 		{
 			// init everything here so they don't need to be instantiated later 
 			MaterialController.Init (); 
+			TextureController.Init(); 
+			OptController.Init ();
 			Seeder.Init (islandDensity);
+			method = Constants.MappableClasses [(int)noiseType];
 		}
 
 		void OnEnable ()
 		{
 			InitModules (); 
-//			this.opt = new Opt (maxTiles); 
 
+//			this.opt = new Opt (maxTiles); 
+			this.queuedIslands = new List<Island>();
 			this.activeTiles = new Dictionary<Vector3, OceanTile> ();
 			this.allTiles = new Dictionary<Vector3, OceanTile> ();
 
@@ -125,6 +139,16 @@ namespace Pipeline
 					: addUnexploredTile (position);
 
 				curTile = tile.Coor;
+			}
+
+			if (queuedIslands.Count != 0) {
+				for(int i = 0; i < queuedIslands.Count;i++) {
+					// display island
+					if (queuedIslands[i].finished) {
+						StartCoroutine (__newIsland (queuedIslands[i])); 
+						queuedIslands.Remove (queuedIslands[i]);
+					} 
+				}
 			}
 		}
 
@@ -158,7 +182,7 @@ namespace Pipeline
 			if (curTile != Vector3.one) {
 				Vector2 d = getDirFromVec (init, curTile);
 
-				if (type == NeighborType.vonNeumann && isCornerDir (d)) {
+				if (neighborType == NeighborType.vonNeumann && isCornerDir (d)) {
 					// only make new tile if it's an edge case 
 					t = addNeighborTile (curTile, d);
 				} else {
@@ -174,7 +198,7 @@ namespace Pipeline
 			numActive++;
 
 			// add neighbors (some may already be filled in
-			Dir[] dirs = neighborToDir [type];
+			Dir[] dirs = neighborToDir [neighborType];
 			foreach (Dir direction in dirs) {
 				addNeighborTile (t.Coor, OceanTile.DirVecs [direction]);
 			}
@@ -231,7 +255,7 @@ namespace Pipeline
 				Destroy (plane.GetComponent<MeshRenderer> ());
 
 				// set the ocean tile as child to keep the inspector clean
-//				__setAsParent (water, oceanTiles);
+				__setAsParent (water, plane);
 			}
 				
 			allTiles.Add (init, t); 
@@ -243,15 +267,15 @@ namespace Pipeline
 			foreach (Vector3 p in islePos) {
 //				Debug.Log("[init] Received isle pos: " + p.ToString ());
 
-				Island i = new Island (p, scale);
+				Island i = new Island (p, scale, method, textureType, textureDensity);
+
 				t.activeIslands.Add (i); 
+				queuedIslands.Add (i);
 			
 				// change the color of the water around the island
 				baseColor = i.Coloring.colorKeys [4].color; // todo? 
 				baseColor.a = 0.15f;
-	
-				// display island
-				StartCoroutine (__newIsland (i)); 
+
 			}
 
 			if (!testTile && baseColor != waterColor) {// change water color to be gross 
@@ -269,16 +293,13 @@ namespace Pipeline
 				obj = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 			} else {
 				_debug ("Adding new island");
-				Mesh m = i.CreateAndDisplayIsland (); 
+
 
 				// create empty game object 
-				obj = __createObjWithMesh (m);
+				obj = __createObjWithMesh (i.Mesh);
 			}
 
 			__transform ("island", i.Loc, i.Scale, obj); 
-
-			// make the parent of tile gameobject
-//			__setAsParent (obj, newObj);
 
 			obj.GetComponent<MeshRenderer> ().material = i.Material;
 

@@ -4,6 +4,7 @@ using UnityEngine;
 using MeshLib;
 using NoiseLib;
 using MaterialLib;
+using TextureLib;
 using TerrainLib;
 using Util;
 
@@ -16,7 +17,8 @@ namespace Pipeline
 		//==============================================
 		// PRIVATE VARIABLES
 
-		private static float islandLevel = -1f;
+
+		private static int islandRange = 5;
 
 		//==============================================
 		// CONSTRUCTOR
@@ -24,12 +26,14 @@ namespace Pipeline
 		// creates a random island given a few parameters
 		public Island (Vector3 init, 
 		               Vector3 scale, 
-		               IHeightMappable<Vector2> method = null, 
+		               IHeightMappable<Vector2> method,
+						TextureTypes t,
+			int density,
 		               MeshLib.MaskMethod m = null)
-			: base (init, scale, method)
+			: base (init, scale, method, t, density)
 		{
 			// adjust the y coordinate of the island
-			this.Loc = new Vector3 (Loc.x, islandLevel, Loc.z); 
+			this.Loc = new Vector3 (Loc.x, -1 * Random.Range(1, islandRange), Loc.z); 
 
 			// assign the type of mask
 			this.Mask = m != null ? m : MeshLib.Mask.GenRandom ();
@@ -38,7 +42,11 @@ namespace Pipeline
 				Debug.Log ("WHAT1");
 			}
 
+
+
 			_debug ("Initialized");
+
+			StartCreateIsland (); 
 		}
 
 		public MaskMethod Mask { get; private set; }
@@ -46,14 +54,13 @@ namespace Pipeline
 		//==============================================
 		// ISLAND OPERATIONS
 
-		public Mesh CreateAndDisplayIsland ()
+		public void StartCreateIsland ()
 		{
 			_debug ("Creating island");
 			newTerrain (); 
 
 			// create a mesh out of these params (deterministic) 
 			renderTerrain (Mask); 
-			return this.Mesh; 
 		}
 
 		public void HideIsland ()
@@ -68,6 +75,7 @@ namespace Pipeline
 			this.destroyTerrain (); 
 		}
 
+	
 		//==============================================
 		// UTIL
 
@@ -78,7 +86,7 @@ namespace Pipeline
 		{
 			return "[Island info]"
 			+ "\n[Mask]\t\t" + this.Mask.ToString ()
-			+ "\n[islandLevel]\t\t" + islandLevel
+			+ "\n[islandHeightRange]\t\t" + islandRange
 			+ "\n";
 		}
 

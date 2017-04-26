@@ -6,6 +6,7 @@ using MeshLib;
 using NoiseLib;
 using TerrainLib;
 using Pipeline;
+using MaterialLib;
 
 // Controls basically everything
 public class TerrainCreatorScript : MonoBehaviour
@@ -87,16 +88,15 @@ public class TerrainCreatorScript : MonoBehaviour
 	private GenericTerrain t;
 	private Vector3 scale;
 
-	void genRandom ()
-	{
-		//todo 
-	}
+	private IHeightMappable<Vector2> noiseClass = 
+		Constants.MappableClasses[0];
 
 	// initialize terrain
 	private void init ()
 	{
 		if (t == null) {
-			t = new GenericTerrain (GetComponent<Transform> ().position, scale); 
+			MaterialController.Init ();
+			t = new GenericTerrain (GetComponent<Transform> ().position, scale, noiseClass); 
 		} 
 	}
 
@@ -128,7 +128,6 @@ public class TerrainCreatorScript : MonoBehaviour
 	void onEnable ()
 	{
 		scale = new Vector3 (islandSize, islandHeight, islandSize);
-		Debug.Log ("in onEnable");
 		UpdateTerrain ();
 	}
 

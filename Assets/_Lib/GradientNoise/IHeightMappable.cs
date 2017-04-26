@@ -10,18 +10,4 @@ namespace NoiseLib
 
 		float _noise (Vector3 v);
 	}
-
-
-	public enum MappableTypes
-	{
-		Exp,
-		Perlin,
-		Value
-	}
-
-	public enum OtherTypes
-	{
-		DiamondSquare,
-	}
-
 }

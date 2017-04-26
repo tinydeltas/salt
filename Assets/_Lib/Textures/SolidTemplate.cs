@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using NoiseLib;
 namespace TextureLib
 {
-	public class SolidTemplate : TextureBuilder
+	public class SolidTemplate 
 	{
-		public Color gen (Vector3  pos, int cubeX, int cubeY)
+
+
+		public static float gen (Vector3  pos, 
+			IHeightMappable<Vector2> noiseFunc)
 		{
-			return Color.blue;
+			return noiseFunc.noise (pos);
 		}
 
 	}

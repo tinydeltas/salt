@@ -7,18 +7,41 @@ using MeshLib;
 using Util;
 using MaterialLib;
 using TextureLib;
+using Pipeline;
 
 namespace TerrainLib
 {
+	public class Params {
+
+	}
+
+	public class NoiseParams : Params
+	{
+		public Vector3 p;
+		public int v;
+		public MaskMethod mask;
+	};
+
+	public struct NoiseReturns
+	{
+		public float height;
+		public Color color;
+		public int v;
+	}
+
+	public delegate void asyncFunc (Params p);
+
 	public class GenericTerrain
 	{
 		public static bool debug = false;
+		public static bool optimize = true;
+		public bool finished = false;
 
 		//==============================================
 		// PRIVATE VARIABLES
 
-		private static float sizeFactor = 10f; 
-		private static int defDensity = 10;
+		private static float sizeFactor = 10f;
+		private const int defDensity = 10;
 
 		//==============================================
 		// supposed to be private (todo)
@@ -35,12 +58,16 @@ namespace TerrainLib
 
 		public GenericTerrain (Vector3 init,
 		                       Vector3 scale,  
-			IHeightMappable<Vector2> method = null)
+		                       IHeightMappable<Vector2> method,  
+		                       TextureTypes t = TextureTypes.NoTexture,
+		                       int density = defDensity)
 		{
-			this.Method = method != null ? method : Constants.MappableClasses [0];
-			this.Material = MaterialController.GenDefault();
-			this.TextureGen = TextureController.TextureClasses [1];
-			this.TextureDensity = defDensity;
+			this.Method = method; 
+			this.Material = MaterialController.GenDefault ();
+
+			// set default values 
+			this.TextureDensity = density;
+			this.TextureType = t;
 			this.Texture = new Texture2D (resolution * TextureDensity, resolution * TextureDensity); 
 
 			this.Loc = init;
@@ -51,6 +78,7 @@ namespace TerrainLib
 			);
 
 			this.Coloring = randomGradient ();
+			this.MeshCount = this.Mesh.vertices.Length;
 
 			_debug ("Initialized");
 		}
@@ -58,13 +86,15 @@ namespace TerrainLib
 		//==============================================
 		// MEMBERS
 
-		// PUBLIC SET  
+		// PUBLIC SET
+		public TextureTypes TextureType { get; set; }
+		public int TextureDensity { get; set; }
 
 		// used for scaling mesh
 		public Vector3 Scale { get; set; }
 
-		// noise method used 
-		public IHeightMappable<Vector2> Method {get; protected set; }
+		// noise method used
+		public IHeightMappable<Vector2> Method { get; protected set; }
 
 		// center, absolute coordinates on world map
 		public Vector3 Loc { get; protected set; }
@@ -73,12 +103,13 @@ namespace TerrainLib
 		public Material Material { get; protected set; }
 
 		// texture used in rendering the island
-		public Texture2D Texture { get; protected set;  }
-		public TextureBuilder TextureGen { get ; protected set; }
-		public int TextureDensity { get; protected set; }  
+		public Texture2D Texture { get; protected set; }
 
 		// island mesh
 		public Mesh Mesh { get; private set; }
+		public Color[] Colors { get; private set; } 
+		public Vector3[] Vertices { get; private set; }
+		public int MeshCount { get; protected set; } 
 
 		// color of the island
 		public Gradient Coloring { get; private set; }
@@ -99,7 +130,6 @@ namespace TerrainLib
 			Vector3[] vecs = MeshUtil.Constants.UnitVectors2D;
 
 			// extract parameters 
-//			IHeightMappable<Vector2>[] cls = NoiseLib.Constants.MappableClasses;
 			float dx = 1f / resolution;
 
 			if (coloring == null) {
@@ -109,47 +139,80 @@ namespace TerrainLib
 			// counter for vertices
 			int v = 0; 
 
-			Color[] colors = this.Mesh.colors;
-			Vector3[] vertices = this.Mesh.vertices;
-			this.Texture.name = "island texture"; 
+			Colors = this.Mesh.colors;
+			Vertices = this.Mesh.vertices;
 
 			for (int i = 0; i <= resolution; i++) {
 				Vector3 p0 = Vector3.Lerp (vecs [0], vecs [2], i * dx); 
 				Vector3 p1 = Vector3.Lerp (vecs [1], vecs [3], i * dx); 
 
 				for (int j = 0; j <= resolution; j++) {
+
 					// localposition
 					Vector3 p = Vector3.Lerp (p0, p1, j * dx);
 
-					// adjusted for global position
-					Vector3 n = new Vector3 (p.x + Loc.x, p.y + Loc.z);
-
-					float height = genNoise (n);
-
-					// apply maske
-					height = MeshLib.Mask.Transform (p, height, mask);
-
-					// readjust height to find color
-					float modified = height + 0.5f;
-					Color newColor = coloring.Evaluate (modified);
-
-					colors [v] = newColor;
-					vertices [v].y = height;
+					NoiseParams par = new NoiseParams {
+						p = p,
+						v = v, 
+						mask = mask,
+					}; 
+				
+					if (optimize) {
+						OptController.RegisterTask (new Job {
+							func = noiseAsyncFunc, 
+							par = par,
+						});
+					} else {
+						noiseAsyncFunc (par); 
+					}
 
 					v++;
 				}
 			}
 
+			Debug.Log ("Registered all tasks: " + OptController.jobQueue.Count.ToString ());
+
 			// update texture 
-			this.Texture = CellularTemplate.fillTexture (this.Texture, 
-				this.resolution, this.TextureDensity, this.TextureGen);
+			if (this.TextureType != TextureTypes.NoTexture)
+				this.Texture = TextureController.fillTexture (this.Texture, 
+					this.resolution, this.TextureDensity, 
+					this.TextureType);
+		}
 			
-			this.Mesh.vertices = vertices;
-			this.Mesh.colors = colors;
-			this.Mesh.RecalculateNormals (); 
+		// async stuff
+		public void noiseAsyncFunc (Params par)
+		{
+			NoiseParams pa = (NoiseParams)par;
+			// adjusted for global position
+			Vector3 n = new Vector3 (pa.p.x + Loc.x, pa.p.y + Loc.z);
+
+			// calculate height
+			float height = genNoise (n);
+
+			// apply maske
+			height = MeshLib.Mask.Transform (pa.p, height, pa.mask);
+
+			// readjust height to find color
+			Color newColor = Coloring.Evaluate (height + 0.5f);
+
+			this.Colors [pa.v] = newColor; 
+			this.Vertices [pa.v].y = height;
+
+			//			Debug.Log ("v is at: " + pa.v.ToString ());
+
+			if (pa.v == MeshCount - 1) { 
+				this.Mesh.vertices = this.Vertices;
+				this.Mesh.colors = this.Colors;
+				this.Mesh.RecalculateNormals (); 
+
+				finished = true;
+
+				Debug.Log ("Island rendering finisheD");
+			}
+
 		}
 
-		private float genNoise (Vector3 point)
+		public float genNoise (Vector3 point)
 		{
 			float freq = frequency;
 			float sum = Method.noise (point * freq);
@@ -179,7 +242,7 @@ namespace TerrainLib
 				this.Mesh.Clear (); 
 			}
 				
-			if (res > 0 ) {
+			if (res > 0) {
 				resolution = res;
 			}
 

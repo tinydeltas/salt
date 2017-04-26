@@ -19,7 +19,7 @@ namespace NoiseLib
 			new int[]{ 1, 1 },
 			new int[]{ -1, 1 },
 			new int[]{ 1, -1 },
-			new int[]{ -1, -1 }
+			new int[]{ -1, -1 }, 
 		};
 
 		public static int[] hash = {
@@ -54,6 +54,18 @@ namespace NoiseLib
 			184, 84, 204, 176, 115, 121, 50, 45, 127,  4, 150, 254, 138, 236, 205, 93,
 			222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
 		};
+
+		public enum MappableTypes
+		{
+			Exp,
+			Perlin,
+			Value
+		}
+
+		public enum OtherTypes
+		{
+			DiamondSquare,
+		}
 
 		public static IHeightMappable<Vector2>[] MappableClasses = {
 			new ExpNoise (), 

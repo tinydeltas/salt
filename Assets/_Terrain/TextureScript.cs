@@ -9,14 +9,15 @@ public class TextureScript : MonoBehaviour
 	public int resolution = 4;
 	public TextureTypes type = 0;
 	public float size = 1f;
-	private TextureBuilder tb;
+
 	private Texture2D tex;
 
 	private int curRes = -1;
 
 	void Awake ()
 	{
-		tb = TextureController.TextureClasses [(int)type];
+		TextureController.Init ();
+		OptController.Init ();
 		tex = new Texture2D (resolution, resolution);
 	}
 		
@@ -27,7 +28,7 @@ public class TextureScript : MonoBehaviour
 			Debug.Log ("New resolution: " + resolution.ToString ());
 			tex = new Texture2D (resolution * (int) size, resolution * (int) size);
 
-			CellularTemplate.fillTexture (tex, resolution, (int) size, tb);
+			TextureController.fillTexture (tex, resolution, (int) size,  type);
 			GetComponent<MeshRenderer> ().material.mainTexture = tex;
 
 			curRes = resolution;
