@@ -26,12 +26,10 @@ namespace TextureLib
 	public class TextureController
 	{
 		public static bool optimize = true;
-
 		public static List<Job> newJobs;
 
 		public static void Init ()
 		{
-			CellularTemplate.Init ();
 			newJobs = new List<Job> ();
 		}
 
@@ -51,8 +49,6 @@ namespace TextureLib
 
 			Vector3 pt = Vector3.zero;
 			Color[] colors = tex.GetPixels ();
-
-//			Debug.Log ("Loc: " + pars.localLoc.ToString ());
 
 			int v = 0;
 			for (int i = 0; i < tex.width; i++) {
@@ -81,8 +77,9 @@ namespace TextureLib
 				}
 			}
 		
-			if (optimize)
+			if (optimize) {
 				OptController.RegisterTasks (newJobs);
+			}
 
 			newJobs.Clear ();
 		}
@@ -97,10 +94,10 @@ namespace TextureLib
 
 			switch (t.Type) {
 			case TextureTypes.Cellular: 
-				g = CellularTemplate.gen (pa.p); 
+				g = CellularTemplate.gen(pa.p); 
 				break;
 			case TextureTypes.Solid: 
-				g = SolidTemplate.gen (pa.p, NoiseLib.Constants.MappableClasses [1]) + 0.5f;
+				g = SolidTemplate.gen (pa.p);
 				// @todo: fix to be more flexible
 				break;
 			}

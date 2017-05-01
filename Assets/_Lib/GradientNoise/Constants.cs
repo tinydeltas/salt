@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace NoiseLib
 {
+	public delegate float noiseFunc (Vector2 p);
+
 	public class Constants
 	{
 			
@@ -55,10 +57,11 @@ namespace NoiseLib
 			222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
 		};
 
-		public enum MappableTypes
+		public enum MappableNoiseTypes
 		{
 			Exp,
 			Perlin,
+			Voronoi,
 			Value
 		}
 
@@ -67,10 +70,12 @@ namespace NoiseLib
 			DiamondSquare,
 		}
 
-		public static IHeightMappable<Vector2>[] MappableClasses = {
-			new ExpNoise (), 
-			new PerlinNoise (), 
-			new ValueNoise ()
+		public static IHeightMappable<Vector2> _exp = new ExpNoise(); 
+		public static IHeightMappable<Vector2> _perlin = new PerlinNoise();
+		public static IHeightMappable<Vector2> _value = new ValueNoise(); 
+
+		public static noiseFunc[] NoiseFuncs = {
+			_exp.noise, _perlin.noise, VoronoiNoise.noise, _value.noise, 
 		};
 
 		public static MeshNoise[] OtherClasses = {

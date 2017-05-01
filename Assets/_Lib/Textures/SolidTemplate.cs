@@ -7,12 +7,9 @@ namespace TextureLib
 {
 	public class SolidTemplate 
 	{
-
-
-		public static float gen (Vector3  pos, 
-			IHeightMappable<Vector2> noiseFunc)
+		public static float gen (Vector3  pos)
 		{
-			return noiseFunc.noise (pos);
+			return Constants._perlin.noise (pos) + 0.5f;
 		}
 
 	}

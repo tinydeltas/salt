@@ -20,11 +20,12 @@ namespace TextureLib
 		public static bool debug = false;
 
 		private List<Job> jobs = new List<Job> ();
+
 		public TTexture (Vector3 loc, 
 		                 int resolution, 
 		                 int density, 
 		                 TextureTypes type, 
-			bool byTile = true)
+		                 bool byTile = true)
 		{
 
 			this.resolution = resolution; 
@@ -33,35 +34,42 @@ namespace TextureLib
 			this.Loc = loc;
 			this.Type = type;
 
-			this.totalPix = (resolution * density) * (resolution * density) ;
+			this.totalPix = (resolution * density) * (resolution * density);
 
 			this.byTile = byTile;
 
 			this.Tex = new Texture2D (resolution * density, 
-					resolution * density);
+				resolution * density);
 			this.Colors = this.Tex.GetPixels ();
 
 			this.finished = false;
 		}
 
 		public int resolution { get ; private set; }
+
 		public int density { get ; private set; }
+
 		public int totalPix { get; private set; }
 
 		public Vector3 Loc { get; private set; }
+
 		public TextureTypes Type { get; private set; }
+
 		public Texture2D Tex { get ; set; }
+
 		public Color[] Colors { get; private set; }
 
 		public bool finished { get ; set ; }
+
 		public bool byTile { get; private set; }
 
-		public void fill() {
+		public void fill ()
+		{
 			if (Type == TextureTypes.NoTexture)
 				return;
 			
 			if (byTile)
-				fillByTile();
+				fillByTile ();
 			else
 				fillOne ();
 		}
@@ -83,7 +91,7 @@ namespace TextureLib
 				for (int j = 0; j < density; j++) {
 					TTextureParams p = new TTextureParams {
 						texMeta = this, 
-						tex = new Texture2D(resolution, resolution),
+						tex = new Texture2D (resolution, resolution),
 						localLoc = new Vector2 (i, j)
 					};
 
@@ -100,19 +108,20 @@ namespace TextureLib
 			jobs.Clear ();
 		}
 
-		public void addTexture(Texture2D tex, Vector2 loc) {
+		public void addTexture (Texture2D tex, Vector2 loc)
+		{
 			_debug ("Merging into master tex: " + tex.width.ToString ());
 		
 			Color[] tPix = tex.GetPixels (); 
 			for (int i = 0; i < tPix.Length; i++) {
-				int nRow = (int) i / resolution;
-				int nCol =  i % resolution; 
+				int nRow = (int)i / resolution;
+				int nCol = i % resolution; 
 
 				int gRow = resolution * (int)loc.x + nRow;
 				int gCol = resolution * (int)loc.y + nCol; 
 				int idx = gRow * this.Tex.width + gCol;
 			
-				Colors[idx] = tPix [i];
+				Colors [idx] = tPix [i];
 			}
 
 			if (loc.x == density - 1 && loc.y == density - 1) {
@@ -121,9 +130,10 @@ namespace TextureLib
 
 				finished = true;
 			}
-		}			
+		}
 
-		public void _debug(string s) {
+		public void _debug (string s)
+		{
 			if (debug) {
 				Debug.Log ("[TTexture] " + s);
 			}

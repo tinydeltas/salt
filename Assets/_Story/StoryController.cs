@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Story
 {
@@ -13,10 +14,8 @@ namespace Story
 		
 		}
 	
-		// Update is called once per frame
-		void Update ()
-		{
-		
+		void __showText(StoryEvent se) {	
+
 		}
 	}
 

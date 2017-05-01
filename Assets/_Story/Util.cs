@@ -10,9 +10,11 @@ namespace UILib
 
 		public Text toText (TText t)
 		{
-			Text text = new Text (); 
+//			Text text; 
 
-			text.fontSize = TextConstants.defHQFontSize;
+//			text.fontSize = TextConstants.defHQFontSize;
+
+			return null;
 		}
 	}
 

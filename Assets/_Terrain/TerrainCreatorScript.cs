@@ -88,15 +88,16 @@ public class TerrainCreatorScript : MonoBehaviour
 	private GenericTerrain t;
 	private Vector3 scale;
 
-	private IHeightMappable<Vector2> noiseClass = 
-		Constants.MappableClasses[0];
+	// lol just ... force it to be exponential 
+	private noiseFunc func = 
+		Constants.NoiseFuncs[0];
 
 	// initialize terrain
 	private void init ()
 	{
 		if (t == null) {
 			MaterialController.Init ();
-			t = new GenericTerrain (GetComponent<Transform> ().position, scale, noiseClass); 
+			t = new GenericTerrain (GetComponent<Transform> ().position, scale, func); 
 		} 
 	}
 
@@ -117,9 +118,7 @@ public class TerrainCreatorScript : MonoBehaviour
 		Vector3 pos = GetComponent<Transform> ().position; 
 		pos.y = island_level;
 	
-		t.resolution = resolution; 
-//		t.noiseRatios = ratios;
-//		t.Coloring = coloring;
+		GenericTerrain.resolution = resolution; 
 
 		//todo: update persistence, size, etc 
 	}

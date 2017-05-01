@@ -20,6 +20,7 @@ namespace TerrainLib
 		public Vector3 p;
 		public int v;
 		public MaskMethod mask;
+		public GenericTerrain t;
 	};
 
 	public struct NoiseReturns
@@ -46,20 +47,20 @@ namespace TerrainLib
 		//==============================================
 		// supposed to be private (todo)
 
-		public int resolution = 128;
-		public int textureResolution = 32;
+		public static int resolution = 128;
+		public static int textureResolution = 32;
 
-		public int octaves = 6;
-		public float frequency = 4f;
-		public float lacunarity = 2f;
-		public float persistence = 0.4f;
+		public static int octaves = 6;
+		public static float frequency = 4f;
+		public static float lacunarity = 2f;
+		public static float persistence = 0.4f;
 
 		//==============================================
 		// CONSTRUCTOR
 
 		public GenericTerrain (Vector3 init,
 		                       Vector3 scale,  
-		                       IHeightMappable<Vector2> method,  
+			noiseFunc method,  
 		                       TextureTypes t = TextureTypes.NoTexture,
 		                       int density = defDensity)
 		{
@@ -71,9 +72,9 @@ namespace TerrainLib
 
 			this.Loc = init;
 			this.Scale = new Vector3 (
-				scale.x + GetDimensions (scale.x / sizeFactor), 
-				scale.y + GetDimensions (scale.y / sizeFactor),
-				scale.z + GetDimensions (scale.z / sizeFactor) 
+				Mathf.Max(scale.x + GetDimensions (scale.x / sizeFactor), 200), 
+				Mathf.Max(scale.y + GetDimensions (scale.y / sizeFactor), 200),
+				Mathf.Max(scale.z + GetDimensions (scale.z / sizeFactor), 200) 
 			);
 
 			this.Coloring = randomGradient ();
@@ -88,7 +89,7 @@ namespace TerrainLib
 		public Vector3 Scale { get; set; }
 
 		// noise method used
-		public IHeightMappable<Vector2> Method { get; protected set; }
+		public noiseFunc Method { get; protected set; }
 
 		// center, absolute coordinates on world map
 		public Vector3 Loc { get; protected set; }
@@ -149,6 +150,7 @@ namespace TerrainLib
 						p = p,
 						v = v, 
 						mask = mask,
+						t = this,
 					}; 
 				
 					if (optimize) {
@@ -170,38 +172,37 @@ namespace TerrainLib
 		}
 			
 		// async stuff
-		public void noiseAsyncFunc (Params par)
+		public static void noiseAsyncFunc (Params par)
 		{
 			NoiseParams pa = (NoiseParams)par;
+			GenericTerrain t = pa.t;
 			// adjusted for global position
-			Vector3 n = new Vector3 (pa.p.x + Loc.x, pa.p.y + Loc.z);
+			Vector3 n = new Vector3 (pa.p.x + t.Loc.x, pa.p.y + t.Loc.z);
 
-			// calculate height
-			float height = genNoise (n);
-
+			float height = genNoise (pa.p, t.Method);
 			// apply maske
 			height = MeshLib.Mask.Transform (pa.p, height, pa.mask);
 
 			// readjust height to find color
-			Color newColor = Coloring.Evaluate (height + 0.5f);
+			Color newColor = t.Coloring.Evaluate (height + 0.5f);
 
-			this.Colors [pa.v] = newColor; 
-			this.Vertices [pa.v].y = height;
+			t.Colors [pa.v] = newColor; 
+			t.Vertices [pa.v].y = height;
 
-			if (pa.v == MeshCount - 1) { 
-				this.Mesh.vertices = this.Vertices;
-				this.Mesh.colors = this.Colors;
-				this.Mesh.RecalculateNormals (); 
+			if (pa.v == t.MeshCount - 1) { 
+				t.Mesh.vertices = t.Vertices;
+				t.Mesh.colors = t.Colors;
+				t.Mesh.RecalculateNormals (); 
 
-				finished = true;
+				t.finished = true;
 			}
 
 		}
 
-		public float genNoise (Vector3 point)
+		public static float genNoise (Vector3 point, noiseFunc method)
 		{
 			float freq = frequency;
-			float sum = Method.noise (point * freq);
+			float sum = method(point * freq);
 
 			float amplitude = 1f;
 			float range = 1f;
@@ -210,7 +211,7 @@ namespace TerrainLib
 				freq *= lacunarity;
 				amplitude *= persistence;
 				range += amplitude;
-				sum += Method.noise (point * freq) * amplitude;
+				sum += method (point * freq) * amplitude;
 			}
 			return sum / range;
 		}

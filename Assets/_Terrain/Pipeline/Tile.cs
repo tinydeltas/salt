@@ -62,6 +62,8 @@ namespace Pipeline
 		// its active islands
 		public  List<Island> activeIslands { get; private set; }
 
+		public GameObject waterObj { get; set; }
+
 		//==============================================
 		// state
 

@@ -21,34 +21,33 @@ namespace Pipeline
 		public NeighborType neighborType = NeighborType.Complete;
 
 		[Header ("nav / world options")]
-		[Range (50, 500)] 
+
+		public bool islandMode = true;
+		public bool storyMode = true;
+
+		[Range (50, 1000)] 
 		public float tileSize = 250f;
 
 		[Range (0.3f, 0.55f)]
 		public float islandDensity = 0.4f;
 
-		[Range (1, 500)]
+		[Range (100, 500)]
 		public float minIslandSize = 200f;
 
-		[Range (1, 500)]
-		public float islandHeight = 150f;
-
-		[Header ("optimization options")]
-//		[Range (5, 100)]
-//		public int maxTiles = 5;
+		[Range (100, 500)]
+		public float islandHeight = 200f;
 
 		[Header ("noise options")]
-		public Constants.MappableTypes noiseType = 
-			NoiseLib.Constants.MappableTypes.Exp;
-		private static IHeightMappable<Vector2> method;
-
+		public Constants.MappableNoiseTypes noiseType = 
+			NoiseLib.Constants.MappableNoiseTypes.Exp;
+	
 		[Header ("texture options")]
 		public TextureTypes textureType = TextureTypes.Cellular;
 		public int textureDensity = 10;
 
 		// color options
-		private static Color oceanColor = new Color ((float)50 / 255, (float)197 / 255, (float)213 / 255, 0.4f);
-		private static Color refractColor = new Color ((float)225 / 255, (float)165 / 255, (float)190 / 255, 0.4f);
+		private static Color oceanColor = new Color ((float)50 / 255, (float)197 / 255, (float)213 / 255, 0.5f);
+		private static Color refractColor = new Color ((float)225 / 255, (float)165 / 255, (float)190 / 255, 0.2f);
 		public Color waterColor = oceanColor;
 
 		[Header ("testing options")]
@@ -69,10 +68,17 @@ namespace Pipeline
 		private Vector3 scale;
 		private Vector3 curTile = Vector3.one;
 
+		private static noiseFunc method;
+
+		private bool firstIsland = false;
+
 		//==============================================
 		// CONSTANTS
+		public const string advancedWaterPrefabPath = "Water4Advanced";
+		public const string lighthousePrefabPath = "Prefabs/Lighthouse07/Lighthouse07";
+		public const string defSkyboxPath = "Skyboxes/";
+		public const string trashPath = "Aging/";
 
-		public string advancedWaterPrefabPath = "Water4Advanced";
 
 		private static Dictionary<NeighborType, Dir[]> neighborToDir = 
 			new Dictionary<NeighborType, Dir[]> { 
@@ -94,11 +100,14 @@ namespace Pipeline
 		private void InitModules ()
 		{
 			// init everything here so they don't need to be instantiated later 
+			VoronoiNoise.Init ();
 			MaterialController.Init (); 
 			TextureController.Init (); 
 			OptController.Init ();
 			Seeder.Init (islandDensity);
-			method = Constants.MappableClasses [(int)noiseType];
+
+
+			method = Constants.NoiseFuncs[(int)noiseType];
 		}
 
 		void OnEnable ()
@@ -140,12 +149,72 @@ namespace Pipeline
 				OceanTile tile = activeTiles.ContainsKey (key) ? activeTiles [key] 
 					: addUnexploredTile (position);
 
+				// reset colors 
+				Color waterColor = oceanColor; 
+				Color refract = refractColor;
+				if (tile.activeIslands.Count != 0) {
+					waterColor = Color.red; 
+					waterColor.a = 0.5f;
+
+					refract = Random.ColorHSV ();
+					refract.a = 0.1f;
+
+					if (!firstIsland) {
+						firstIsland = true;
+						__storySetUp (tile.activeIslands[0]);
+					}
+					__changeSkybox ();
+
+					foreach (Island i in tile.activeIslands) {
+						__instantiateTrash (i);
+					}
+				}
+
+				__changeWaterColor (tile.waterObj, waterColor, refract);
+
 				curTile = tile.Coor;
 			}
 
 			__displayIslands ();
+		}
 
-		
+		private void __instantiateTrash(Island i) {
+			if (!storyMode)
+				return;
+
+			Debug.Log ("Instantiating trash");
+			int n = Random.Range (1, 5); 
+			GameObject obj = Instantiate(Resources.Load(trashPath + n.ToString())) as GameObject; 
+			obj.AddComponent<Rigidbody>();
+			obj.AddComponent<MeshCollider> ();
+
+			__transform ("trash", i.Loc, Vector3.one, obj); 
+
+		}
+		private void __changeSkybox() {
+			if (!storyMode)
+				return; 
+			
+			int n = Random.Range (1, 16);
+			string s = n.ToString ();
+			if (n < 10)
+				s = "0" + s;
+			s = defSkyboxPath + "sky" + s;
+
+			RenderSettings.skybox = Resources.Load (s) as Material;
+			DynamicGI.UpdateEnvironment ();
+
+			Debug.Log ("Changed skybox");
+		}
+
+		private void __storySetUp(Island i) {
+			if (!storyMode)
+				return;
+			
+			Debug.Log ("Instantiating lighthouse!!");
+
+			GameObject obj = Instantiate (Resources.Load (lighthousePrefabPath)) as GameObject;
+			__transform ("lighthouse", i.Loc + Vector3.one, Vector3.one * 3, obj);
 		}
 
 		private void  __displayIslands ()
@@ -260,29 +329,20 @@ namespace Pipeline
 
 				// set the ocean tile as child to keep the inspector clean
 				__setAsParent (water, plane);
+
+				t.waterObj = water;
 			}
-				
+
 			allTiles.Add (init, t); 
 			totalTiles++;
-
+		
 			Vector3[] islePos = Seeder.Seed (t.Coor, t.Size);
-
-			Color baseColor = waterColor; 
 			foreach (Vector3 p in islePos) {
-
+				Debug.Log ("Queued island");
 				Island i = new Island (p, scale, method, textureType, textureDensity);
 
 				t.activeIslands.Add (i); 
 				queuedIslands.Add (i);
-			
-				// change the color of the water around the island
-				baseColor = i.Coloring.colorKeys [4].color; // todo? 
-				baseColor.a = 0.15f;
-
-			}
-
-			if (!testTile && baseColor != waterColor) {// change water color to be gross 
-				__changeWaterColor (water, baseColor, refractColor);
 			}
 
 			return t;
@@ -346,6 +406,8 @@ namespace Pipeline
 
 		private void __changeWaterColor (GameObject water, Color b, Color reflection)
 		{
+			if (water == null)
+				return;
 			WaterBase w = water.GetComponent<WaterBase> (); 
 			w.sharedMaterial.SetColor ("_BaseColor", b); 
 			w.sharedMaterial.SetColor ("_ReflectionColor", reflection); 

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
-namespace UI
+//using Story;
+namespace UILib
 {
 	public class TText : MonoBehaviour
 	{
@@ -18,11 +18,11 @@ namespace UI
 		private Text t;
 
 
-
 		public TText (string s, 
-		             int pb = 0, int pa = 0, 
-		             Color c = Color.black, 
-		             Vector2 pos = PrologueConstants.defNarratePos)
+			Color c, 
+			Vector2 pos,
+		             int pb = 0, int pa = 0
+			)
 		{
 			this.s = s;
 			this.pause_before = pb; 

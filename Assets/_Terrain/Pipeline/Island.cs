@@ -25,7 +25,7 @@ namespace Pipeline
 		// creates a random island given a few parameters
 		public Island (Vector3 init, 
 		               Vector3 scale, 
-		               IHeightMappable<Vector2> method,
+			noiseFunc method,
 		               TextureTypes t,
 		               int density,
 		               MeshLib.MaskMethod m = null)
