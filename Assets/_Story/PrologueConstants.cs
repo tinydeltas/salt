@@ -2,15 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PrologueConstants : MonoBehaviour {
+namespace Story
+{
+	public class PrologueConstants
+	{
 
-	// Use this for initialization
-	void Start () {
-		
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
 }
