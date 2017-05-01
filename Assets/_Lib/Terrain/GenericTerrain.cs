@@ -47,6 +47,7 @@ namespace TerrainLib
 		// supposed to be private (todo)
 
 		public int resolution = 128;
+		public int textureResolution = 32;
 
 		public int octaves = 6;
 		public float frequency = 4f;
@@ -66,9 +67,7 @@ namespace TerrainLib
 			this.Material = MaterialController.GenDefault ();
 
 			// set default values 
-			this.TextureDensity = density;
-			this.TextureType = t;
-			this.Texture = new Texture2D (resolution * TextureDensity, resolution * TextureDensity); 
+			this.Texture = new TTexture (init, textureResolution, density, t);
 
 			this.Loc = init;
 			this.Scale = new Vector3 (
@@ -78,17 +77,12 @@ namespace TerrainLib
 			);
 
 			this.Coloring = randomGradient ();
-			this.MeshCount = this.Mesh.vertices.Length;
 
 			_debug ("Initialized");
 		}
 
 		//==============================================
 		// MEMBERS
-
-		// PUBLIC SET
-		public TextureTypes TextureType { get; set; }
-		public int TextureDensity { get; set; }
 
 		// used for scaling mesh
 		public Vector3 Scale { get; set; }
@@ -103,7 +97,7 @@ namespace TerrainLib
 		public Material Material { get; protected set; }
 
 		// texture used in rendering the island
-		public Texture2D Texture { get; protected set; }
+		public TTexture Texture { get; protected set; }
 
 		// island mesh
 		public Mesh Mesh { get; private set; }
@@ -172,11 +166,7 @@ namespace TerrainLib
 
 			Debug.Log ("Registered all tasks: " + OptController.jobQueue.Count.ToString ());
 
-			// update texture 
-			if (this.TextureType != TextureTypes.NoTexture)
-				this.Texture = TextureController.fillTexture (this.Texture, 
-					this.resolution, this.TextureDensity, 
-					this.TextureType);
+			this.Texture.fill();
 		}
 			
 		// async stuff
@@ -198,16 +188,12 @@ namespace TerrainLib
 			this.Colors [pa.v] = newColor; 
 			this.Vertices [pa.v].y = height;
 
-			//			Debug.Log ("v is at: " + pa.v.ToString ());
-
 			if (pa.v == MeshCount - 1) { 
 				this.Mesh.vertices = this.Vertices;
 				this.Mesh.colors = this.Colors;
 				this.Mesh.RecalculateNormals (); 
 
 				finished = true;
-
-				Debug.Log ("Island rendering finisheD");
 			}
 
 		}
@@ -247,6 +233,7 @@ namespace TerrainLib
 			}
 
 			this.Mesh = MeshLib.MeshUtil.NewMesh (resolution, this.Mesh);
+			this.MeshCount = this.Mesh.vertices.Length;
 		}
 
 		public void destroyTerrain ()

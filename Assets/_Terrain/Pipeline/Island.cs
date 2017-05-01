@@ -17,7 +17,6 @@ namespace Pipeline
 		//==============================================
 		// PRIVATE VARIABLES
 
-
 		private static int islandRange = 5;
 
 		//==============================================
@@ -27,13 +26,13 @@ namespace Pipeline
 		public Island (Vector3 init, 
 		               Vector3 scale, 
 		               IHeightMappable<Vector2> method,
-						TextureTypes t,
-			int density,
+		               TextureTypes t,
+		               int density,
 		               MeshLib.MaskMethod m = null)
 			: base (init, scale, method, t, density)
 		{
 			// adjust the y coordinate of the island
-			this.Loc = new Vector3 (Loc.x, -1 * Random.Range(1, islandRange), Loc.z); 
+			this.Loc = new Vector3 (Loc.x, -1 * Random.Range (1, islandRange), Loc.z); 
 
 			// assign the type of mask
 			this.Mask = m != null ? m : MeshLib.Mask.GenRandom ();
@@ -41,16 +40,21 @@ namespace Pipeline
 			if (this.Mask == null) {
 				Debug.Log ("WHAT1");
 			}
-
-
-
+				
 			_debug ("Initialized");
 
 			StartCreateIsland (); 
 		}
 
+		//==============================================
+		// MEMBERS
+
 		public MaskMethod Mask { get; private set; }
 
+		public bool texSet { get; set; }
+
+		public GameObject obj { get; set; }
+	
 		//==============================================
 		// ISLAND OPERATIONS
 

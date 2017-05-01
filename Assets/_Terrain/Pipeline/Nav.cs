@@ -34,18 +34,16 @@ namespace Pipeline
 		public float islandHeight = 150f;
 
 		[Header ("optimization options")]
-		public bool runOpt = true;
-
-		[Range (5, 100)]
-		public int maxTiles = 5;
+//		[Range (5, 100)]
+//		public int maxTiles = 5;
 
 		[Header ("noise options")]
 		public Constants.MappableTypes noiseType = 
 			NoiseLib.Constants.MappableTypes.Exp;
-		private static IHeightMappable<Vector2> method; 
+		private static IHeightMappable<Vector2> method;
 
 		[Header ("texture options")]
-		public TextureTypes textureType = TextureTypes.Cellular; 
+		public TextureTypes textureType = TextureTypes.Cellular;
 		public int textureDensity = 10;
 
 		// color options
@@ -56,14 +54,15 @@ namespace Pipeline
 		[Header ("testing options")]
 		public bool testTile = false;
 		public bool testIsland = false;
-		public bool testTexture = true;
 
 		//==============================================
 		// PRIVATE VARIABLES
 		private List<Island> queuedIslands = null;
+		private List<Island> allUntexturedIslands = null;
+
 		private Dictionary<Vector3, OceanTile> activeTiles = null;
 		private Dictionary<Vector3, OceanTile> allTiles = null;
-
+	
 		private static int totalTiles = 0;
 		private static int numActive = 0;
 
@@ -96,7 +95,7 @@ namespace Pipeline
 		{
 			// init everything here so they don't need to be instantiated later 
 			MaterialController.Init (); 
-			TextureController.Init(); 
+			TextureController.Init (); 
 			OptController.Init ();
 			Seeder.Init (islandDensity);
 			method = Constants.MappableClasses [(int)noiseType];
@@ -107,9 +106,12 @@ namespace Pipeline
 			InitModules (); 
 
 //			this.opt = new Opt (maxTiles); 
-			this.queuedIslands = new List<Island>();
+			this.queuedIslands = new List<Island> ();
+			this.allUntexturedIslands = new List<Island> ();
+
 			this.activeTiles = new Dictionary<Vector3, OceanTile> ();
 			this.allTiles = new Dictionary<Vector3, OceanTile> ();
+		
 
 			// allocate initial tile
 			Transform t = GetComponent<Transform> (); 
@@ -141,36 +143,38 @@ namespace Pipeline
 				curTile = tile.Coor;
 			}
 
-			if (queuedIslands.Count != 0) {
-				for(int i = 0; i < queuedIslands.Count;i++) {
-					// display island
-					if (queuedIslands[i].finished) {
-						StartCoroutine (__newIsland (queuedIslands[i])); 
-						queuedIslands.Remove (queuedIslands[i]);
-					} 
-				}
-			}
+			__displayIslands ();
+
+		
 		}
 
-		//		private void __runOpt (Vector3 key)
-		//		{
-		//			if (!runOpt)
-		//				return;
-		//
-		//			// register tile in optimization module
-		//			opt.UpdateCache (key);
-		//			List<Vector3> cleanups = opt.ClearCache ();
-		//
-		//			foreach (Vector3 v in cleanups) {
-		//				_debug ("[runOpt] destroying tile: " + v.ToString ());
-		//				Destroy (GameObject.Find (__conObjectName ("Tile", key)));
-		//				allTiles [v] = null;
-		//				if (!activeTiles.Remove (v)) {
-		//					Debug.LogError ("Coordinate " + v.ToString () + "should be in list of active tiles");
-		//					// this should not throw an error
-		//				}
-		//			}
-		//		}
+		private void  __displayIslands ()
+		{
+			for (int i = 0; i < allUntexturedIslands.Count; i++) {
+				Island isl = allUntexturedIslands [i];
+				if (isl.Texture.finished) {
+					__applyTextureToObject (isl.Texture.Tex, isl.obj);
+					allUntexturedIslands.Remove (isl);
+				}
+			}
+
+			for (int i = 0; i < queuedIslands.Count; i++) {
+				Island isl = queuedIslands [i];
+				// display island
+				if (isl.finished) {
+					Debug.Log("Island finished rendering");
+					__newIsland (isl); 
+					queuedIslands.Remove (isl);
+
+					// also check to see if tex is available 
+					if (isl.Texture.finished) {
+						__applyTextureToObject (isl.Texture.Tex, isl.obj);
+					} else if (textureType != TextureTypes.NoTexture) {
+						allUntexturedIslands.Add (isl);
+					}
+				} 
+			}
+		}
 
 		private OceanTile addUnexploredTile (Vector3 refPos)
 		{
@@ -265,7 +269,6 @@ namespace Pipeline
 
 			Color baseColor = waterColor; 
 			foreach (Vector3 p in islePos) {
-//				Debug.Log("[init] Received isle pos: " + p.ToString ());
 
 				Island i = new Island (p, scale, method, textureType, textureDensity);
 
@@ -281,37 +284,41 @@ namespace Pipeline
 			if (!testTile && baseColor != waterColor) {// change water color to be gross 
 				__changeWaterColor (water, baseColor, refractColor);
 			}
-//
+
 			return t;
 		}
 
-		private IEnumerator __newIsland (Island i)
+		private void __newIsland (Island i)
 		{
-			GameObject obj;
+			GameObject obj = null;
+
 			if (testIsland) {
 				_debug ("Adding new test island");
 				obj = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 			} else {
 				_debug ("Adding new island");
-
-
-				// create empty game object 
 				obj = __createObjWithMesh (i.Mesh);
 			}
 
 			__transform ("island", i.Loc, i.Scale, obj); 
 
+			// apply material 
 			obj.GetComponent<MeshRenderer> ().material = i.Material;
-
-			if (testTexture) {
-				Debug.Log ("Texture: " + i.Texture.width.ToString ());
-				i.Texture.filterMode = FilterMode.Trilinear; 
-				i.Texture.wrapMode = TextureWrapMode.Clamp;
-				obj.GetComponent<MeshRenderer> ().material.mainTexture = i.Texture;
-			}
-			yield return null;
+			i.obj = obj;
 		}
 
+		private void __applyTextureToObject (Texture2D tex, 
+		                                          GameObject obj)
+		{
+			Debug.Log ("Applying texture to island.");
+			if (textureType != TextureTypes.NoTexture) {
+				tex.Compress (false);
+				tex.filterMode = FilterMode.Trilinear; 
+				tex.wrapMode = TextureWrapMode.Clamp;
+				obj.GetComponent<MeshRenderer> ().material.mainTexture = tex;
+			}
+		}
+			
 		//==============================================
 		// UNITY ENGINE UTIL
 
@@ -429,5 +436,25 @@ namespace Pipeline
 				Debug.Log (this.ToString ());
 			}
 		}
+
+		//		private void __runOpt (Vector3 key)
+		//		{
+		//			if (!runOpt)
+		//				return;
+		//
+		//			// register tile in optimization module
+		//			opt.UpdateCache (key);
+		//			List<Vector3> cleanups = opt.ClearCache ();
+		//
+		//			foreach (Vector3 v in cleanups) {
+		//				_debug ("[runOpt] destroying tile: " + v.ToString ());
+		//				Destroy (GameObject.Find (__conObjectName ("Tile", key)));
+		//				allTiles [v] = null;
+		//				if (!activeTiles.Remove (v)) {
+		//					Debug.LogError ("Coordinate " + v.ToString () + "should be in list of active tiles");
+		//					// this should not throw an error
+		//				}
+		//			}
+		//		}
 	}
 }

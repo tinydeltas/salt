@@ -18,12 +18,9 @@ namespace TextureLib
 	public class TextureParams : Params
 	{
 		public Vector3 p;
-		public int y, z;
-		public int v; 
-		public int size;
-		public Texture2D tex;
+		public int count;
+		public TTextureParams par;
 		public Color[] colors;
-		public TextureTypes t;
 	}
 
 	public class TextureController
@@ -45,31 +42,29 @@ namespace TextureLib
 
 		// COMPUTATION HEAVY
 		// part of async optimization
-		public static Texture2D fillTexture (Texture2D tex, 
-		                                     int resolution, 
-		                                     int size, 
-		                                     TextureTypes t)
+		public static void fillTexture (Params par)
 		{
-			
-			Vector3 pt = Vector3.zero;
-			int texSize = tex.width * tex.height;
-		
+			TTextureParams pars = (TTextureParams)par;
 
+			TTexture t = pars.texMeta; 
+			Texture2D tex = pars.tex;
+
+			Vector3 pt = Vector3.zero;
 			Color[] colors = tex.GetPixels ();
+
+//			Debug.Log ("Loc: " + pars.localLoc.ToString ());
 
 			int v = 0;
 			for (int i = 0; i < tex.width; i++) {
 				for (int j = 0; j < tex.height; j++) {
-					pt.x = (float)i / resolution; 
-					pt.y = (float)j / resolution;
+					pt.x = t.Loc.x + pars.localLoc.x + (float)i / t.resolution; 
+					pt.y = t.Loc.z + pars.localLoc.y + (float)j / t.resolution;
 
 					TextureParams p = new TextureParams {
 						p = pt,
-						t = t,
-						v = v, 
-						size = texSize, 
-						tex = tex, 
-						colors = colors,
+						par = pars, 
+						count = v,
+						colors=  colors,
 					};
 
 					if (optimize) {
@@ -85,13 +80,11 @@ namespace TextureLib
 					v++;
 				}
 			}
-
-
+		
 			if (optimize)
 				OptController.RegisterTasks (newJobs);
 
 			newJobs.Clear ();
-			return tex;
 		}
 
 
@@ -99,23 +92,33 @@ namespace TextureLib
 		{
 			float g = 0f;
 			TextureParams pa = (TextureParams)par;
+			TTexture t = pa.par.texMeta;
+			Texture2D tex = pa.par.tex;
 
-			switch (pa.t) {
+			switch (t.Type) {
 			case TextureTypes.Cellular: 
 				g = CellularTemplate.gen (pa.p); 
 				break;
 			case TextureTypes.Solid: 
-				g = SolidTemplate.gen (pa.p, NoiseLib.Constants.MappableClasses [1]);
+				g = SolidTemplate.gen (pa.p, NoiseLib.Constants.MappableClasses [1]) + 0.5f;
 				// @todo: fix to be more flexible
 				break;
 			}
+				
+			pa.colors [pa.count] = createColorDefault (g);
 
-			pa.colors [pa.v] = createColorDefault (g);
+			int tileSize = tex.width * tex.height;
+			if (pa.count == tileSize - 1) {
+				tex.SetPixels (pa.colors);
+				tex.Apply ();
+				tex.Compress (false);
 
-			if (pa.v == pa.size - 1) {
-				pa.tex.SetPixels (pa.colors);
-				pa.tex.Apply ();
-				pa.tex.Compress (false);
+				if (tileSize == t.totalPix) {
+					t.Tex = tex;
+					t.finished = true;
+					Debug.Log ("Finished: ");
+				} else
+					t.addTexture (tex, pa.par.localLoc);
 			}
 		}
 	}
