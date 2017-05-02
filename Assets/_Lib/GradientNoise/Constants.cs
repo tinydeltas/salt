@@ -75,9 +75,12 @@ namespace NoiseLib
 		public static IHeightMappable<Vector2> _value = new ValueNoise(); 
 
 		public static noiseFunc[] NoiseFuncs = {
-			_exp.noise, _perlin.noise, VoronoiNoise.noise, _value.noise, 
+			_exp.noise, 
+			_perlin.noise, 
+			VoronoiNoise.noise, 
+			_value.noise, 
 		};
-
+			
 		public static MeshNoise[] OtherClasses = {
 			new DiamondSquare ()
 		};

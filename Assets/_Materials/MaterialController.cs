@@ -9,10 +9,13 @@ namespace MaterialLib
 	
 	class MaterialController : MonoBehaviour
 	{
-		public static string defaultMaterialPath = "TerrainShader";
-		public static string metalPath = "Metals/Materials/metal0";
+		public const string defaultMaterialPath = "TerrainShader";
+		public const string metalPath = "Metals/Materials/metal0";
+		public const int numMetals = 11;
 
-		public static int numMetals = 11;
+		public const int numM = 17;
+		public const string mPath = "Materials/";
+
 		public static int numMaterials;
 
 		//==============================================
@@ -29,6 +32,10 @@ namespace MaterialLib
 				string path = string.Join ("", 
 					              new string[] { metalPath, i.ToString (), "_diffuse" });
 				Materials.Add (Resources.Load (path) as Material);
+			}
+
+			for (int i = 1; i < numM + 1; i++) {
+				Materials.Add (Resources.Load (mPath + i.ToString ()) as Material);
 			}
 
 			numMaterials = Materials.Count;

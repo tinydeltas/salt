@@ -6,13 +6,14 @@ namespace Story
 {
 	public enum StoryEvent
 	{
-		InitialSetup,
-		LighthouseFound
-
+		_0Initial, 
+		_1Instructions,
+		_2LighthouseFound
 	}
 
 	public class PrologueConstants
 	{
+		
 
 	}
 

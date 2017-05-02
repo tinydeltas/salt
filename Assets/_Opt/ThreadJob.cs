@@ -43,6 +43,8 @@ public class ThreadJob
 	public void run() {
 		threadFunc (); 
 		isDone = true;
+		lock (OptController.doneWorkers)
+			OptController.doneWorkers.Add (this);
 	}
 
 	public virtual void stop() {
@@ -61,11 +63,10 @@ public class ThreadJob
 		while (!update())
 			yield return null;
 	}
-
-	/// <summary>
-	///  Custom functions
-	/// </summary>
-	protected virtual void onFinish( ){  }
+		
+	protected virtual void onFinish( ){ 
+	
+	}
 
 	protected virtual void threadFunc() { }
 }

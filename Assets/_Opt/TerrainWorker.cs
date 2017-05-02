@@ -32,5 +32,6 @@ public class TerrainWorker : ThreadJob {
 	protected override void onFinish()
 	{
 		Debug.Log ("Finished from thread: " + this.ToString ());
+		base.onFinish();
 	}
 }

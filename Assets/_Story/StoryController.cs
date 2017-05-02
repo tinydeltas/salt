@@ -9,9 +9,9 @@ namespace Story
 	{
 
 		// Use this for initialization
-		void Start ()
+		void OnGUI()
 		{
-		
+			GUI.Label (new Rect (10, 10, 100, 100), "welcome.");
 		}
 	
 		void __showText(StoryEvent se) {	

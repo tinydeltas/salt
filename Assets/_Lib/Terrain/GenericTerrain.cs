@@ -11,7 +11,8 @@ using Pipeline;
 
 namespace TerrainLib
 {
-	public class Params {
+	public class Params
+	{
 
 	}
 
@@ -20,7 +21,7 @@ namespace TerrainLib
 		public Vector3 p;
 		public int v;
 		public MaskMethod mask;
-		public GenericTerrain t;
+		//		public GenericTerrain t;
 	};
 
 	public struct NoiseReturns
@@ -48,33 +49,33 @@ namespace TerrainLib
 		// supposed to be private (todo)
 
 		public static int resolution = 128;
-		public static int textureResolution = 32;
+		public const int textureResolution = 32;
 
-		public static int octaves = 6;
-		public static float frequency = 4f;
-		public static float lacunarity = 2f;
-		public static float persistence = 0.4f;
+		public const int octaves = 6;
+		public const float frequency = 4f;
+		public const float lacunarity = 2f;
+		public const float persistence = 0.4f;
 
 		//==============================================
 		// CONSTRUCTOR
 
 		public GenericTerrain (Vector3 init,
 		                       Vector3 scale,  
-			noiseFunc method,  
+		                       noiseFunc method,  
 		                       TextureTypes t = TextureTypes.NoTexture,
 		                       int density = defDensity)
 		{
 			this.Method = method; 
-			this.Material = MaterialController.GenDefault ();
+			this.Material = MaterialController.GenRandom ();
 
 			// set default values 
 			this.Texture = new TTexture (init, textureResolution, density, t);
 
 			this.Loc = init;
 			this.Scale = new Vector3 (
-				Mathf.Max(scale.x + GetDimensions (scale.x / sizeFactor), 200), 
-				Mathf.Max(scale.y + GetDimensions (scale.y / sizeFactor), 200),
-				Mathf.Max(scale.z + GetDimensions (scale.z / sizeFactor), 200) 
+				Mathf.Max (scale.x + GetDimensions (scale.x / sizeFactor), 200), 
+				Mathf.Max (scale.y + GetDimensions (scale.y / sizeFactor), 200),
+				Mathf.Max (scale.z + GetDimensions (scale.z / sizeFactor), 200) 
 			);
 
 			this.Coloring = randomGradient ();
@@ -102,9 +103,12 @@ namespace TerrainLib
 
 		// island mesh
 		public Mesh Mesh { get; private set; }
-		public Color[] Colors { get; private set; } 
+
+		public Color[] Colors { get; private set; }
+
 		public Vector3[] Vertices { get; private set; }
-		public int MeshCount { get; protected set; } 
+
+		public int MeshCount { get; protected set; }
 
 		// color of the island
 		public Gradient Coloring { get; private set; }
@@ -150,7 +154,6 @@ namespace TerrainLib
 						p = p,
 						v = v, 
 						mask = mask,
-						t = this,
 					}; 
 				
 					if (optimize) {
@@ -168,33 +171,32 @@ namespace TerrainLib
 
 			Debug.Log ("Registered all tasks: " + OptController.jobQueue.Count.ToString ());
 
-			this.Texture.fill();
+			this.Texture.fill ();
 		}
 			
 		// async stuff
-		public static void noiseAsyncFunc (Params par)
+		public void noiseAsyncFunc (Params par)
 		{
 			NoiseParams pa = (NoiseParams)par;
-			GenericTerrain t = pa.t;
 			// adjusted for global position
-			Vector3 n = new Vector3 (pa.p.x + t.Loc.x, pa.p.y + t.Loc.z);
+			Vector3 n = new Vector3 (pa.p.x + this.Loc.x, pa.p.y + this.Loc.z);
 
-			float height = genNoise (pa.p, t.Method);
+			float height = genNoise (n, this.Method);
 			// apply maske
 			height = MeshLib.Mask.Transform (pa.p, height, pa.mask);
 
 			// readjust height to find color
-			Color newColor = t.Coloring.Evaluate (height + 0.5f);
+			Color newColor = this.Coloring.Evaluate (height + 0.5f);
 
-			t.Colors [pa.v] = newColor; 
-			t.Vertices [pa.v].y = height;
+			this.Colors [pa.v] = newColor; 
+			this.Vertices [pa.v].y = height;
 
-			if (pa.v == t.MeshCount - 1) { 
-				t.Mesh.vertices = t.Vertices;
-				t.Mesh.colors = t.Colors;
-				t.Mesh.RecalculateNormals (); 
+			if (pa.v == this.MeshCount - 1) { 
+				this.Mesh.vertices = this.Vertices;
+				this.Mesh.colors = this.Colors;
+				this.Mesh.RecalculateNormals (); 
 
-				t.finished = true;
+				this.finished = true;
 			}
 
 		}
@@ -202,7 +204,7 @@ namespace TerrainLib
 		public static float genNoise (Vector3 point, noiseFunc method)
 		{
 			float freq = frequency;
-			float sum = method(point * freq);
+			float sum = method (point * freq);
 
 			float amplitude = 1f;
 			float range = 1f;

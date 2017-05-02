@@ -124,6 +124,8 @@ namespace TextureLib
 				Colors [idx] = tPix [i];
 			}
 
+
+
 			if (loc.x == density - 1 && loc.y == density - 1) {
 				this.Tex.SetPixels (Colors); 
 				this.Tex.Apply ();

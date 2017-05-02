@@ -4,44 +4,53 @@ using UnityEngine;
 
 using TerrainLib;
 
-public struct Job {
+public struct Job
+{
 	public asyncFunc func;
 	public Params par;
 }
 
-public class OptController : MonoBehaviour {
-	// user options 
-	private bool debug = false; 
+public class OptController : MonoBehaviour
+{
+	// user options
+	private bool debug = false;
 
-	[Range(1, 10)]
-	public int numThreads = 4;
+	[Range (1, 10)]
+	public int numThreads = 10;
 
-	[Range(10, 1000)]
-	public int opsPerIteration = 400;
+	[Range (10, 1000)]
+	public int opsPerIteration = 500;
 
-	// private variables 
+	// private variables
 	private static TerrainWorker[] tWorkers;
-	public static List<Job> jobQueue; 
 
-	// interfacing fcns 
-	public static void RegisterTask(Job j) {
-		lock(jobQueue) 
-			jobQueue.Add(j);
+	public static List<Job> jobQueue;
+	public static List <ThreadJob> doneWorkers;
+
+	// interfacing fcns
+	public static void RegisterTask (Job j)
+	{
+		lock (jobQueue)
+			jobQueue.Add (j);
 	}
 
-	public static void RegisterTasks(List<Job> j) {
-		lock (jobQueue) 
+	public static void RegisterTasks (List<Job> j)
+	{
+		lock (jobQueue)
 			jobQueue.AddRange (j);
 	}
 
-	// initialization 
-	public static void Init() {
+	// initialization
+	public static void Init ()
+	{
 		Debug.Log ("Making new job queue");
 
 		jobQueue = new List<Job> (); 
+		doneWorkers = new List<ThreadJob> ();
 	}
 
-	public void Start () {
+	public void Start ()
+	{
 		int opsPerWorker = opsPerIteration / numThreads;
 		tWorkers = new TerrainWorker[numThreads];
 
@@ -53,17 +62,17 @@ public class OptController : MonoBehaviour {
 	}
 
 	// on each frame
-	public void Update() {
+	public void Update ()
+	{
 		// grab a couple tasks and do them. 
-		foreach (TerrainWorker t in tWorkers) {
-			if (t.done) {
-				_debug("Starting thread: " + t.ToString ()); 
-				t.run ();
-			}
+		for (int i = 0; i < doneWorkers.Count; i++) {
+			doneWorkers [i].run ();
+			doneWorkers.RemoveAt (i);
 		}
 	}
 
-	private void _debug(string s) {
+	private void _debug (string s)
+	{
 		if (debug) {
 			Debug.Log ("[optController] " + s);
 		}

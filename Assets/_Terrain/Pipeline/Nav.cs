@@ -23,7 +23,7 @@ namespace Pipeline
 		[Header ("nav / world options")]
 
 		public bool islandMode = true;
-		public bool storyMode = true;
+		public bool storyMode = false;
 
 		[Range (50, 1000)] 
 		public float tileSize = 250f;
@@ -51,8 +51,8 @@ namespace Pipeline
 		public Color waterColor = oceanColor;
 
 		[Header ("testing options")]
-		public bool testTile = false;
-		public bool testIsland = false;
+		public bool testTile = true;
+		public bool testIsland = true;
 
 		//==============================================
 		// PRIVATE VARIABLES
@@ -70,7 +70,15 @@ namespace Pipeline
 
 		private static noiseFunc method;
 
+		// story
 		private bool firstIsland = false;
+
+		// for optimization purposes
+		private static GameObject allTrash;
+		private static Material[] allSkyboxes;
+		private static GameObject[] allTrashMaterials;
+		private static GameObject waterObj;
+		private static PhysicMaterial pm;
 
 		//==============================================
 		// CONSTANTS
@@ -78,7 +86,7 @@ namespace Pipeline
 		public const string lighthousePrefabPath = "Prefabs/Lighthouse07/Lighthouse07";
 		public const string defSkyboxPath = "Skyboxes/";
 		public const string trashPath = "Aging/";
-
+		public const string physicsPath = "Metal";
 
 		private static Dictionary<NeighborType, Dir[]> neighborToDir = 
 			new Dictionary<NeighborType, Dir[]> { 
@@ -106,21 +114,31 @@ namespace Pipeline
 			OptController.Init ();
 			Seeder.Init (islandDensity);
 
+			method = Constants.NoiseFuncs [(int)noiseType];
+		}
 
-			method = Constants.NoiseFuncs[(int)noiseType];
+		private void InitResources ()
+		{
+			pm = Resources.Load (physicsPath) as PhysicMaterial;
+			waterObj = Resources.Load (advancedWaterPrefabPath) as GameObject;
+
+			__initSkyboxes ();
+			__initTrash (); 
+
+			allTrash = new GameObject ();
+			allTrash.name = "all trash";
 		}
 
 		void OnEnable ()
 		{
-			InitModules (); 
+			InitModules ();
+			InitResources ();
 
-//			this.opt = new Opt (maxTiles); 
 			this.queuedIslands = new List<Island> ();
 			this.allUntexturedIslands = new List<Island> ();
 
 			this.activeTiles = new Dictionary<Vector3, OceanTile> ();
 			this.allTiles = new Dictionary<Vector3, OceanTile> ();
-		
 
 			// allocate initial tile
 			Transform t = GetComponent<Transform> (); 
@@ -130,6 +148,8 @@ namespace Pipeline
 
 			this.curTile = firstTile.Coor;
 			this.scale = new Vector3 (minIslandSize, islandHeight, minIslandSize);
+
+			// jumpstart the story 
 			_debug ("Initialized");
 		}
 	
@@ -141,7 +161,6 @@ namespace Pipeline
 			// update current tile if needed and display its neighborhood
 			if (curTile == Vector3.one || !inTile (curTile, position)) {
 				Vector3 key = GetTileKey (position);
-//				__runOpt (key);
 
 				_debug ("[update] In new tile, updating curTile with key: " + key);
 			
@@ -152,6 +171,7 @@ namespace Pipeline
 				// reset colors 
 				Color waterColor = oceanColor; 
 				Color refract = refractColor;
+
 				if (tile.activeIslands.Count != 0) {
 					waterColor = Color.red; 
 					waterColor.a = 0.5f;
@@ -161,13 +181,9 @@ namespace Pipeline
 
 					if (!firstIsland) {
 						firstIsland = true;
-						__storySetUp (tile.activeIslands[0]);
+						__storySetUp (tile.activeIslands [0]);
 					}
 					__changeSkybox ();
-
-					foreach (Island i in tile.activeIslands) {
-						__instantiateTrash (i);
-					}
 				}
 
 				__changeWaterColor (tile.waterObj, waterColor, refract);
@@ -178,36 +194,68 @@ namespace Pipeline
 			__displayIslands ();
 		}
 
-		private void __instantiateTrash(Island i) {
+		private void __initTrash ()
+		{
+			allTrashMaterials = new GameObject[7];
+
+			string path;
+			for (int i = 1; i < 8; i++) {
+				path = trashPath + i.ToString ();
+				allTrashMaterials [i - 1] = Resources.Load (path) as GameObject;
+			}
+		}
+
+		private void __instantiateTrash (Island i)
+		{
 			if (!storyMode)
 				return;
-
+			
 			Debug.Log ("Instantiating trash");
-			int n = Random.Range (1, 5); 
-			GameObject obj = Instantiate(Resources.Load(trashPath + n.ToString())) as GameObject; 
-			obj.AddComponent<Rigidbody>();
-			obj.AddComponent<MeshCollider> ();
 
-			__transform ("trash", i.Loc, Vector3.one, obj); 
+			int nTrash = Random.Range (3, 40);
+			GameObject obj;
 
+			for (int j = 0; j < nTrash; j++) {
+				int n = Random.Range (1, 7);
+				obj = allTrashMaterials [n - 1];
+				obj = Instantiate (obj);
+				Vector3 loc = i.Loc + new Vector3 (
+					              Random.Range (1, i.Scale.x), 
+					              50, 
+					              Random.Range (1, i.Scale.z));
+
+				__transform ("trash", loc, Vector3.one, obj); 
+
+				__setAsParent (obj, allTrash);
+			}
 		}
-		private void __changeSkybox() {
+
+		private void __initSkyboxes ()
+		{
+			allSkyboxes = new Material[14];
+			string s;
+			for (int i = 2; i < 16; i++) {
+				s = i.ToString ();
+				if (i < 10)
+					s = "0" + s;
+				s = defSkyboxPath + "sky" + s;
+				allSkyboxes [i - 2] = Resources.Load (s) as Material;
+			}
+		}
+
+		private void __changeSkybox ()
+		{
 			if (!storyMode)
 				return; 
-			
-			int n = Random.Range (1, 16);
-			string s = n.ToString ();
-			if (n < 10)
-				s = "0" + s;
-			s = defSkyboxPath + "sky" + s;
 
-			RenderSettings.skybox = Resources.Load (s) as Material;
+			RenderSettings.skybox = allSkyboxes [Random.Range (0, allSkyboxes.Length)];
 			DynamicGI.UpdateEnvironment ();
 
 			Debug.Log ("Changed skybox");
 		}
 
-		private void __storySetUp(Island i) {
+		private void __storySetUp (Island i)
+		{
 			if (!storyMode)
 				return;
 			
@@ -231,7 +279,7 @@ namespace Pipeline
 				Island isl = queuedIslands [i];
 				// display island
 				if (isl.finished) {
-					Debug.Log("Island finished rendering");
+					Debug.Log ("Island finished rendering");
 					__newIsland (isl); 
 					queuedIslands.Remove (isl);
 
@@ -310,15 +358,19 @@ namespace Pipeline
 			GameObject plane = GameObject.CreatePrimitive (PrimitiveType.Plane); 
 			__transform ("Tile", convertToAbsCoords (t.Coor), t.Scale, plane);
 
+			MeshCollider mc = plane.GetComponent<MeshCollider> ();
+			mc.convex = true; 
+			mc.sharedMaterial = pm;
+
 			// initialize and display islands associated with tile
 			GameObject water = null;
 
 			if (testTile) {
 				// create a plane instead of the oecan 
-				Color randColor = new Color (Random.value, Random.value, Random.value); 
+				Color randColor = Random.ColorHSV (); 
 				plane.GetComponent<Renderer> ().material.color = randColor;
 			} else {
-				water = Instantiate (Resources.Load (advancedWaterPrefabPath)) as GameObject;
+				water = Instantiate (waterObj);
 
 				// modify the scale bc the size of plane is different from the tile size
 				Vector3 scale = new Vector3 (tileSize / 100f, 0.1f, tileSize / 100f);
@@ -335,16 +387,20 @@ namespace Pipeline
 
 			allTiles.Add (init, t); 
 			totalTiles++;
-		
-			Vector3[] islePos = Seeder.Seed (t.Coor, t.Size);
-			foreach (Vector3 p in islePos) {
-				Debug.Log ("Queued island");
-				Island i = new Island (p, scale, method, textureType, textureDensity);
 
-				t.activeIslands.Add (i); 
-				queuedIslands.Add (i);
+			if (testIsland) {
+				Vector3[] islePos = Seeder.Seed (t.Coor, t.Size);
+				foreach (Vector3 p in islePos) {
+					Debug.Log ("Queued island");
+					Island i = new Island (p, scale, method, textureType, textureDensity);
+
+					t.activeIslands.Add (i); 
+					queuedIslands.Add (i);
+
+					__instantiateTrash (i);
+				}
 			}
-
+	
 			return t;
 		}
 
@@ -368,7 +424,7 @@ namespace Pipeline
 		}
 
 		private void __applyTextureToObject (Texture2D tex, 
-		                                          GameObject obj)
+		                                     GameObject obj)
 		{
 			Debug.Log ("Applying texture to island.");
 			if (textureType != TextureTypes.NoTexture) {
