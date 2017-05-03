@@ -9,26 +9,25 @@ namespace UILib
 	public class TText : MonoBehaviour
 	{
 
-		private string s = "";
-		private int pause_before, pause_after;
-		private Color color;
+		public int pause_before{ get; private set;} 
+		public int pause_after { get; private set;}
+		public Color color {get; private set;}
 
-		private Vector2 pos;
+		public Vector2 pos {get; private set;}
+		public Vector2 size {get; private set;} 
 
-		private Text t;
+		public int font_size {get; private set;}
 
-
-		public TText (string s, 
-			Color c, 
-			Vector2 pos,
-		             int pb = 0, int pa = 0
-			)
+		public TText (Color c, Vector2 pos, Vector2 size,
+			int pb = 0, int pa = 0, 
+			int fontsize = Story.StoryConstants.defNarFontSize)
 		{
-			this.s = s;
 			this.pause_before = pb; 
 			this.pause_before = pa; 
 			this.color = c;
 			this.pos = pos;
+			this.size = size;
+			this.font_size = fontsize;
 		}
 	}
 

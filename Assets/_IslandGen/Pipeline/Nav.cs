@@ -388,17 +388,15 @@ namespace Pipeline
 			allTiles.Add (init, t); 
 			totalTiles++;
 
-			if (testIsland) {
-				Vector3[] islePos = Seeder.Seed (t.Coor, t.Size);
-				foreach (Vector3 p in islePos) {
-					Debug.Log ("Queued island");
-					Island i = new Island (p, scale, method, textureType, textureDensity);
+			Vector3[] islePos = Seeder.Seed (t.Coor, t.Size);
+			foreach (Vector3 p in islePos) {
+				Debug.Log ("Queued island");
+				Island i = new Island (p, scale, method, textureType, textureDensity);
 
-					t.activeIslands.Add (i); 
-					queuedIslands.Add (i);
+				t.activeIslands.Add (i); 
+				queuedIslands.Add (i);
 
-					__instantiateTrash (i);
-				}
+				__instantiateTrash (i);
 			}
 	
 			return t;

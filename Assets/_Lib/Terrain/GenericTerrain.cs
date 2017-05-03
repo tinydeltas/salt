@@ -66,7 +66,7 @@ namespace TerrainLib
 		                       int density = defDensity)
 		{
 			this.Method = method; 
-			this.Material = MaterialController.GenRandom ();
+			this.Material = MaterialController.GenDefault();
 
 			// set default values 
 			this.Texture = new TTexture (init, textureResolution, density, t);
