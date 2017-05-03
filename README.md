@@ -1,4 +1,6 @@
-# in-valence
+# salt
+
+"traveler, taste the salt lingering in your memories; taste your sister's sand-crusted skin, your mother's dumplings, your past self, waiting to be born." 
 
 an unconventional survival game set in a procedurally-generated, post-apocalyptic world.  
 
