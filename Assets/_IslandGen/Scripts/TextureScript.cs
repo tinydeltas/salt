@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using TextureLib;
+using NoiseLib;
 
 public class TextureScript : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class TextureScript : MonoBehaviour
 	{
 		TextureController.Init ();
 		OptController.Init ();
+		VoronoiNoise.Init ();
 		tex = new TTexture (Vector3.zero, resolution, (int) size, type);
 	}
 		

@@ -52,7 +52,7 @@ namespace TerrainLib
 		public const int textureResolution = 32;
 
 		public const int octaves = 6;
-		public const float frequency = 4f;
+		public const float frequency = 3f;
 		public const float lacunarity = 2f;
 		public const float persistence = 0.4f;
 

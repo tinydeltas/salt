@@ -25,9 +25,9 @@ namespace TextureLib
 		                 int resolution, 
 		                 int density, 
 		                 TextureTypes type, 
-		                 bool byTile = true)
+		                 bool byTile = false)
 		{
-
+			
 			this.resolution = resolution; 
 			this.density = density;
 
@@ -38,9 +38,11 @@ namespace TextureLib
 
 			this.byTile = byTile;
 
-			this.Tex = new Texture2D (resolution * density, 
-				resolution * density);
-			this.Colors = this.Tex.GetPixels ();
+			if (this.Type != TextureTypes.NoTexture) {
+				this.Tex = new Texture2D (resolution * density, 
+					resolution * density);
+				this.Colors = this.Tex.GetPixels ();
+			}
 
 			this.finished = false;
 		}

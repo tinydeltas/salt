@@ -15,11 +15,11 @@ public class OptController : MonoBehaviour
 	// user options
 	private bool debug = false;
 
-	[Range (1, 10)]
+	[Range (1, 20)]
 	public int numThreads = 10;
 
-	[Range (10, 1000)]
-	public int opsPerIteration = 500;
+	[Range (10, 2000)]
+	public int opsPerIteration = 1000;
 
 	// private variables
 	private static TerrainWorker[] tWorkers;
