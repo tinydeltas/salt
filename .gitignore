@@ -4,5 +4,5 @@ Temp
 .DS_Store
 valence.sln
 *.csproj
-Asserts/*.meta
+Assets/*.meta
 Assets/Resources
